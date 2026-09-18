@@ -1,0 +1,485 @@
+<!doctype html>
+<html lang="th">
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>648 Sourdough LAB CLUB · สั่งซื้อ</title>
+
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@400;600;700;800&display=swap" rel="stylesheet">
+
+  <style>
+    * { font-family: 'Sarabun', sans-serif !important; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+    html, body { margin: 0; width: 100%; min-height: 100%; background: #f8fafc; color: #0f172a; }
+    body { padding: env(safe-area-inset-top) 0 calc(90px + env(safe-area-inset-bottom)); }
+    input, select, textarea, button { font-size: 16px !important; }
+
+    .header { background: #6b4226; color: #fff; padding: 14px 18px; display: flex; justify-content: space-between; align-items: center; position: sticky; top: 0; z-index: 10; }
+    .wrap { max-width: 480px; margin: 0 auto; padding: 12px 12px; }
+    .card { background: #fff; border: 1px solid #e2e8f0; border-radius: 16px; box-shadow: 0 2px 12px rgba(15,23,42,.04); }
+    .muted { color: #64748b; }
+    .num { font-weight: 800; letter-spacing: -.03em; }
+
+    .product-card { border: 1px solid #e2e8f0; border-radius: 14px; background: #fff; padding: 10px; display: flex; gap: 10px; align-items: center; }
+    .soft-blue { background: #e0f2fe; } .soft-green { background: #f0fdf4; } .soft-orange { background: #fff7ed; }
+    .soft-red { background: #fff1f2; } .soft-yellow { background: #fefce8; }
+
+    /* ===== รูปภาพสินค้า ===== */
+    .product-img-wrap { width: 74px; height: 74px; border-radius: 12px; overflow: hidden; flex-shrink: 0; background: #f1f5f9; display: flex; align-items: center; justify-content: center; }
+    .product-img { width: 100%; height: 100%; object-fit: cover; display: block; }
+    .product-img-wrap.img-fallback { font-size: 28px; }
+
+    .qtybtn { width: 32px; height: 32px; border-radius: 8px; border: 1px solid #cbd5e1; background: #fff; font-weight: 900; font-size: 18px !important; display: flex; align-items: center; justify-content: center; }
+    .addbtn { background: #6b4226; color: #fff; border-radius: 10px; padding: 8px 16px; font-weight: 700; }
+
+    .cartbar { position: fixed; left: 0; right: 0; bottom: 0; background: #fff; border-top: 1px solid #e2e8f0; padding: 10px 14px calc(10px + env(safe-area-inset-bottom)); z-index: 20; }
+    .cartbar .inner { max-width: 480px; margin: 0 auto; display: flex; align-items: center; gap: 10px; }
+    .sendbtn { flex: 1; background: #059669; color: #fff; border-radius: 14px; padding: 13px; font-weight: 800; font-size: 17px !important; }
+    .sendbtn:disabled { opacity: .5; }
+
+    .promobar { max-width: 480px; margin: 0 auto 8px; background: #fff7ed; border: 1px solid #fdba74; border-radius: 12px; padding: 8px 12px; font-size: 13px; font-weight: 700; color: #9a3412; text-align: center; }
+    .promobar.done { background: #f0fdf4; border-color: #86efac; color: #166534; }
+    .promobar-track { height: 6px; background: #fed7aa; border-radius: 999px; margin-top: 6px; overflow: hidden; }
+    .promobar-fill { height: 100%; background: #f97316; border-radius: 999px; transition: width .25s; }
+    .promobar.done .promobar-fill { background: #22c55e; }
+
+    .view { display: none; } .view.active { display: block; }
+
+    .modal { position: fixed; inset: 0; background: rgba(15,23,42,.6); z-index: 50; display: none; align-items: center; justify-content: center; padding: 14px; }
+    .modal.show { display: flex; }
+    .summary { width: min(94vw, 440px); max-height: 88vh; overflow: auto; background: #fff; border-radius: 20px; padding: 20px; }
+    .promocard { width: min(90vw, 380px); background: #fff; border-radius: 20px; padding: 24px; text-align: center; }
+
+    .spin { display: inline-block; width: 20px; height: 20px; border: 3px solid #e2e8f0; border-top-color: #6b4226; border-radius: 50%; animation: spin .7s linear infinite; }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    .memberbar { background: #dcfce7; border: 1px solid #86efac; border-radius: 14px; padding: 10px 14px; margin-bottom: 12px; font-weight: 700; font-size: 14px; display:flex; align-items:center; gap:8px; }
+  </style>
+</head>
+
+<body>
+
+  <header class="header">
+    <div>
+      <div style="font-size:12px; color:#d4a373;">648 Sourdough LAB CLUB</div>
+      <div style="font-weight:800; font-size:18px; line-height:1.1;">สั่งซื้อ</div>
+    </div>
+    <div style="font-weight:800; color:#d4a373;">F⁵ · w⁷⁶</div>
+  </header>
+
+  <div id="view-order" class="view active">
+    <div class="wrap">
+
+      <div id="memberBar" class="memberbar" style="display:none;">
+        ✅ <span id="memberBarText">เชื่อมสมาชิกแล้ว</span>
+      </div>
+
+      <div class="card p-3 mb-3 soft-orange">
+        <div class="font-bold" style="color:#6b4226;">📅 รอบการผลิต</div>
+        <div class="text-sm muted font-bold mt-1">สั่งภายใน จันทร์–ศุกร์ · รับวันจันทร์ถัดไป</div>
+      </div>
+
+      <div class="card p-3 mb-3">
+        <div class="font-bold mb-2" style="color:#6b4226;">ข้อมูลผู้สั่ง</div>
+        <div class="space-y-2">
+          <input id="custName" class="border rounded-xl px-3 py-3 font-bold w-full" placeholder="ชื่อ-นามสกุล *">
+          <input id="custPhone" type="tel" inputmode="numeric" class="border rounded-xl px-3 py-3 font-bold w-full" placeholder="เบอร์โทร *">
+          <input id="custLine" class="border rounded-xl px-3 py-3 font-bold w-full" placeholder="LINE / หมายเหตุ (ถ้ามี)">
+          <div>
+            <label class="text-xs font-bold muted">จุดนัดรับสินค้า *</label>
+            <textarea id="pickLocation" rows="2" class="border rounded-xl px-3 py-3 font-bold w-full mt-1" placeholder="เช่น ชั้น 12 ตึก A บริษัท XXX / โต๊ะทำงานแผนกบัญชี"></textarea>
+          </div>
+          <div>
+            <label class="text-xs font-bold muted">วันรับ (จันทร์ถัดไป)</label>
+            <input id="pickDate" type="date" class="border rounded-xl px-3 py-3 font-bold w-full mt-1">
+          </div>
+        </div>
+      </div>
+
+      <div class="card p-3">
+        <div class="flex gap-2 mb-2">
+          <input id="search" class="border rounded-xl px-3 py-2 font-bold flex-1" placeholder="ค้นหาเมนู" oninput="renderProducts()">
+          <select id="category" class="border rounded-xl px-2 py-2 font-bold" onchange="renderProducts()">
+            <option value="all">ทั้งหมด</option>
+            <option>Sourdough</option>
+            <option>Soup</option>
+            <option>Bundle</option>
+            <option>Pizza</option>
+          </select>
+        </div>
+        <div id="products" class="space-y-2"></div>
+      </div>
+
+    </div>
+  </div>
+
+  <div class="cartbar" id="cartbar">
+    <div class="inner" style="flex-direction:column; align-items:stretch; gap:6px;">
+      <div id="promoBar" class="promobar" style="display:none;">
+        <span id="promoBarText"></span>
+        <div class="promobar-track"><div id="promoBarFill" class="promobar-fill" style="width:0%;"></div></div>
+      </div>
+      <div class="inner" style="padding:0;">
+        <div>
+          <div class="text-xs muted font-bold">รวม</div>
+          <div id="cartTotal" class="num text-2xl" style="color:#6b4226;">0฿</div>
+        </div>
+        <button class="sendbtn" id="sendBtn" onclick="submitOrder()">ส่งออเดอร์ (<span id="cartCount">0</span>)</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="summaryModal" class="modal">
+    <div>
+      <div id="summaryCard" class="summary">
+        <div class="text-center">
+          <div class="text-2xl">✅</div>
+          <div class="font-black text-xl" style="color:#6b4226;">รับออเดอร์แล้ว!</div>
+          <div class="muted text-sm font-bold mt-1">กรุณาแคปหน้าจอนี้ส่งให้ร้านเพื่อยืนยัน</div>
+        </div>
+
+        <div class="mt-4 pt-3" style="border-top:2px dashed #e2e8f0;">
+          <div class="flex justify-between text-sm mb-1"><span class="muted font-bold">เลขออเดอร์</span><span id="sumOrderId" class="font-black">-</span></div>
+          <div class="flex justify-between text-sm mb-1"><span class="muted font-bold">ชื่อ</span><span id="sumName" class="font-bold">-</span></div>
+          <div class="flex justify-between text-sm mb-1"><span class="muted font-bold">เบอร์</span><span id="sumPhone" class="font-bold">-</span></div>
+          <div class="flex justify-between text-sm mb-1"><span class="muted font-bold">วันรับ</span><span id="sumDate" class="font-bold">-</span></div>
+          <div class="flex justify-between text-sm mb-1"><span class="muted font-bold">จุดนัดรับ</span><span id="sumLocation" class="font-bold">-</span></div>
+        </div>
+
+        <div class="mt-3 pt-3" style="border-top:2px dashed #e2e8f0;">
+          <div id="sumItems" class="space-y-1 text-sm"></div>
+        </div>
+
+        <div id="sumPromoNote" class="mt-3 p-3 rounded-2xl soft-green font-black text-sm text-center" style="display:none;">
+          🧊 คุณได้รับถุงเก็บความเย็นฟรี 1 ใบ!
+        </div>
+
+        <div class="mt-3 pt-3 flex justify-between items-end" style="border-top:2px solid #6b4226;">
+          <span class="font-bold">ยอดรวม</span>
+          <span id="sumTotal" class="num text-3xl" style="color:#6b4226;">0฿</span>
+        </div>
+      </div>
+
+      <div class="grid grid-cols-2 gap-2 mt-3">
+        <button onclick="saveSummaryImage()" class="bg-slate-900 text-white rounded-xl py-3 font-black">บันทึกรูป</button>
+        <button onclick="closeSummary()" class="bg-slate-200 rounded-xl py-3 font-black">ปิด</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="promoModal" class="modal">
+    <div class="promocard">
+      <div style="font-size:40px;">🧊</div>
+      <div class="font-black text-xl mt-1" style="color:#6b4226;">เกือบแล้ว!</div>
+      <div class="muted font-bold text-sm mt-2" style="line-height:1.6;">
+        ซื้อครบ <span style="color:#059669;">400฿</span> ขึ้นไป รับฟรี<br>
+        ถุงเก็บความเย็นทันที 🎁
+      </div>
+      <div class="mt-3 mb-1" style="font-size:14px;">
+        ตอนนี้ยอดของคุณ <b id="promoCurrentTotal">0฿</b><br>
+        อีกแค่ <span id="promoNeedMore" style="color:#dc2626; font-weight:900;">0฿</span> ก็ได้ของแถมแล้ว!
+      </div>
+      <div class="grid grid-cols-2 gap-2 mt-4">
+        <button onclick="closePromo()" class="bg-orange-500 text-white rounded-xl py-3 font-black">เลือกเพิ่ม</button>
+        <button onclick="proceedWithoutPromo()" class="bg-slate-200 rounded-xl py-3 font-black">สั่งเลย</button>
+      </div>
+    </div>
+  </div>
+
+<script>
+'use strict';
+
+const urlParams = new URLSearchParams(window.location.search);
+const LINE_USER_ID = urlParams.get('lineUserId') || '';
+const LINE_NAME = urlParams.get('lineName') || '';
+
+const FULL = 730, HALF = 365, PIZZA = 250;
+const PROMO_THRESHOLD = 400;
+
+/* ===== ที่เก็บรูปภาพสินค้า (Vercel) =====
+   ตั้งชื่อไฟล์รูปตาม ProductCode เป๊ะๆ เช่น SD-SIGN-F.jpg
+   อัปโหลดไปที่ /public/images/ ใน repo ของ Vercel แล้ว deploy ใหม่
+   ถ้าเปลี่ยน domain Vercel ในอนาคต แก้ค่าตัวแปรนี้ตัวเดียวพอ */
+const IMAGE_BASE_URL = 'https://648-nu.vercel.app/images/';
+
+function imgUrl(code){
+  return IMAGE_BASE_URL + code + '.jpg';
+}
+
+const PRODUCTS = [
+  { code:'SD-SIGN-F', name:'Signature Plain Full Loaf', cat:'Sourdough', price:200, dough:FULL },
+  { code:'SD-SIGN-H', name:'Signature Plain Half Loaf', cat:'Sourdough', price:129, dough:HALF },
+  { code:'SD-BACH-F', name:'Bacon & Cheese Full Loaf', cat:'Sourdough', price:289, dough:FULL },
+  { code:'SD-BACH-H', name:'Bacon & Cheese Half Loaf', cat:'Sourdough', price:169, dough:HALF },
+  { code:'SD-CBWN-F', name:'Cranberry Walnut Full Loaf', cat:'Sourdough', price:269, dough:FULL },
+  { code:'SD-CBWN-H', name:'Cranberry Walnut Half Loaf', cat:'Sourdough', price:159, dough:HALF },
+  { code:'SD-PTCH-F', name:'Pesto & Cheese Full Loaf', cat:'Sourdough', price:269, dough:FULL },
+  { code:'SD-PTCH-H', name:'Pesto & Cheese Half Loaf', cat:'Sourdough', price:159, dough:HALF },
+  { code:'SD-DCHB-F', name:'Double Cheese & Herb Full Loaf', cat:'Sourdough', price:289, dough:FULL },
+  { code:'SD-DCHB-H', name:'Double Cheese & Herb Half Loaf', cat:'Sourdough', price:179, dough:HALF },
+  { code:'SP-CLSP', name:'Clam Soup 280 ml', cat:'Soup', price:39, dough:0 },
+  { code:'BR-SET', name:'Brunch Set Half Loaf + Soup', cat:'Bundle', price:159, dough:HALF },
+  { code:'PZ-BCN-10', name:'Bacon Lover 10"', cat:'Pizza', price:229, dough:PIZZA },
+  { code:'PZ-CHK-10', name:'Smoke Chicken 10"', cat:'Pizza', price:219, dough:PIZZA },
+  { code:'PZ-CBN-10', name:'Carbonara 10"', cat:'Pizza', price:229, dough:PIZZA },
+  { code:'PZ-MSC-10', name:'Mushroom White Sauce 10"', cat:'Pizza', price:219, dough:PIZZA },
+  { code:'PZ-SPN-10', name:'Spinach Cheese 10"', cat:'Pizza', price:219, dough:PIZZA }
+];
+
+let cart = {};
+
+function money(n){ return Math.round(Number(n||0)).toLocaleString('th-TH') + '฿'; }
+
+function codeType(code){
+  if (code.includes('BACH')) return 'soft-orange';
+  if (code.includes('CBWN')) return 'soft-red';
+  if (code.includes('PTCH')) return 'soft-green';
+  if (code.includes('DCHB')) return 'soft-yellow';
+  if (code.startsWith('PZ')) return 'soft-orange';
+  if (code.startsWith('SP')) return 'soft-blue';
+  if (code.startsWith('BR')) return 'soft-green';
+  return 'soft-blue';
+}
+
+function nextMonday(){
+  const d = new Date();
+  const day = d.getDay();
+  let add = (8 - day) % 7; if (add === 0) add = 7;
+  d.setDate(d.getDate() + add);
+  return d.toISOString().slice(0,10);
+}
+document.getElementById('pickDate').value = nextMonday();
+
+function prefillMemberInfo(){
+  if (!LINE_USER_ID) return;
+  if (LINE_NAME) document.getElementById('custLine').value = LINE_NAME;
+
+  google.script.run
+    .withSuccessHandler(function(res){
+      if (res && res.ok && res.registered && res.member) {
+        document.getElementById('custName').value = res.member.customerName || '';
+        document.getElementById('custPhone').value = res.member.phone || '';
+        const bar = document.getElementById('memberBar');
+        const txt = document.getElementById('memberBarText');
+        txt.textContent = 'เชื่อมสมาชิก: ' + (res.member.customerName || '') + ' (' + (res.member.customerId || '') + ')';
+        bar.style.display = 'flex';
+      }
+    })
+    .withFailureHandler(function(){})
+    .getMemberByLineId(LINE_USER_ID);
+}
+
+/* รูปโหลดไม่ขึ้น (ยังไม่มีไฟล์บน Vercel หรือชื่อไฟล์ไม่ตรง) ให้ซ่อน <img>
+   แล้วโชว์ไอคอนขนมปัง 🍞 แทน กันไม่ให้เห็นไอคอนรูปหักน่าเกลียด */
+function onProductImgError(imgEl){
+  imgEl.style.display = 'none';
+  const wrap = imgEl.parentElement;
+  wrap.classList.add('img-fallback');
+  wrap.textContent = '🍞';
+}
+
+function renderProducts(){
+  const q = (document.getElementById('search').value || '').toLowerCase();
+  const cat = document.getElementById('category').value;
+  const list = PRODUCTS.filter(p =>
+    (cat === 'all' || p.cat === cat) &&
+    ((p.code + ' ' + p.name).toLowerCase().includes(q))
+  );
+
+  document.getElementById('products').innerHTML = list.map(p => {
+    const qty = cart[p.code] || 0;
+    const ctrl = qty > 0
+      ? `<div class="flex items-center gap-2">
+           <button class="qtybtn" onclick="dec('${p.code}')">−</button>
+           <span class="num" style="min-width:24px;text-align:center;">${qty}</span>
+           <button class="qtybtn" onclick="inc('${p.code}')">+</button>
+         </div>`
+      : `<button class="addbtn" onclick="inc('${p.code}')">เพิ่ม</button>`;
+    return `
+      <div class="product-card ${codeType(p.code)}">
+        <div class="product-img-wrap">
+          <img class="product-img" src="${imgUrl(p.code)}" alt="${p.name}" loading="lazy"
+               onerror="onProductImgError(this)">
+        </div>
+        <div style="flex:1; min-width:0;">
+          <div class="font-bold" style="font-size:16px;">${p.name}</div>
+          <div class="text-xs muted font-bold">${p.cat}</div>
+        </div>
+        <div class="text-right">
+          <div class="num text-xl" style="color:#6b4226;">${money(p.price)}</div>
+          <div class="mt-2">${ctrl}</div>
+        </div>
+      </div>`;
+  }).join('') || '<div class="muted font-bold text-center py-4">ไม่พบเมนู</div>';
+}
+
+function inc(code){ cart[code] = (cart[code]||0) + 1; renderProducts(); renderCart(); }
+function dec(code){ cart[code] = (cart[code]||0) - 1; if (cart[code] <= 0) delete cart[code]; renderProducts(); renderCart(); }
+
+function cartArray(){
+  return Object.keys(cart).map(code => {
+    const p = PRODUCTS.find(x => x.code === code);
+    const qty = cart[code];
+    return { ...p, qty, lineTotal: p.price * qty };
+  });
+}
+
+function renderPromoBar(total){
+  const bar = document.getElementById('promoBar');
+  const text = document.getElementById('promoBarText');
+  const fill = document.getElementById('promoBarFill');
+
+  if (total <= 0){
+    bar.style.display = 'none';
+    return;
+  }
+
+  bar.style.display = 'block';
+
+  if (total >= PROMO_THRESHOLD){
+    bar.classList.add('done');
+    text.textContent = '🎉 ได้รับถุงเก็บความเย็นฟรี 1 ใบ!';
+    fill.style.width = '100%';
+  } else {
+    bar.classList.remove('done');
+    const remain = PROMO_THRESHOLD - total;
+    text.textContent = '🧊 อีก ' + money(remain) + ' รับฟรีถุงเก็บความเย็น!';
+    fill.style.width = Math.min(100, (total / PROMO_THRESHOLD) * 100) + '%';
+  }
+}
+
+function renderCart(){
+  const items = cartArray();
+  const total = items.reduce((s,it) => s + it.lineTotal, 0);
+  const count = items.reduce((s,it) => s + it.qty, 0);
+  document.getElementById('cartTotal').textContent = money(total);
+  document.getElementById('cartCount').textContent = count;
+  document.getElementById('sendBtn').disabled = count === 0;
+  renderPromoBar(total);
+}
+
+function submitOrder(){
+  const items = cartArray();
+  const name = document.getElementById('custName').value.trim();
+  const phone = document.getElementById('custPhone').value.trim();
+  const pickLocation = document.getElementById('pickLocation').value.trim();
+
+  if (!items.length){ alert('กรุณาเลือกสินค้าอย่างน้อย 1 รายการ'); return; }
+  if (!name){ alert('กรุณากรอกชื่อ'); return; }
+  if (!phone){ alert('กรุณากรอกเบอร์โทร'); return; }
+  if (!pickLocation){ alert('กรุณาระบุจุดนัดรับสินค้า'); return; }
+
+  const totalAmount = items.reduce((s,it) => s + it.lineTotal, 0);
+
+  if (totalAmount < PROMO_THRESHOLD){
+    document.getElementById('promoCurrentTotal').textContent = money(totalAmount);
+    document.getElementById('promoNeedMore').textContent = money(PROMO_THRESHOLD - totalAmount);
+    document.getElementById('promoModal').classList.add('show');
+    return;
+  }
+
+  doSubmitOrder();
+}
+
+function closePromo(){
+  document.getElementById('promoModal').classList.remove('show');
+}
+
+function proceedWithoutPromo(){
+  document.getElementById('promoModal').classList.remove('show');
+  doSubmitOrder();
+}
+
+function doSubmitOrder(){
+  const items = cartArray();
+  const name = document.getElementById('custName').value.trim();
+  const phone = document.getElementById('custPhone').value.trim();
+  const lineName = document.getElementById('custLine').value.trim();
+  const pickDate = document.getElementById('pickDate').value;
+  const pickLocation = document.getElementById('pickLocation').value.trim();
+  const totalAmount = items.reduce((s,it) => s + it.lineTotal, 0);
+  const gotPromo = totalAmount >= PROMO_THRESHOLD;
+
+  const order = {
+    customerName: name,
+    phone: phone,
+    lineName: lineName,
+    lineUserId: LINE_USER_ID,
+    bakeDate: pickDate,
+    pickupLocation: pickLocation,
+    paymentStatus: 'Pending',
+    orderStatus: 'New',
+    totalAmount: totalAmount,
+    items: items.map(it => ({
+      productCode: it.code,
+      productName: it.name,
+      qty: it.qty,
+      unitPrice: it.price,
+      lineTotal: it.lineTotal,
+      doughWeight: it.dough
+    }))
+  };
+
+  const btn = document.getElementById('sendBtn');
+  btn.disabled = true;
+  btn.innerHTML = '<span class="spin"></span>';
+
+  google.script.run
+    .withSuccessHandler(function(res){
+      btn.disabled = false;
+      btn.innerHTML = 'ส่งออเดอร์ (<span id="cartCount">0</span>)';
+      if (!res || !res.ok){ alert((res && res.error) || 'ส่งออเดอร์ไม่สำเร็จ กรุณาลองใหม่'); renderCart(); return; }
+      showSummary(res, order, items, totalAmount, gotPromo);
+    })
+    .withFailureHandler(function(err){
+      btn.disabled = false;
+      btn.innerHTML = 'ส่งออเดอร์ (<span id="cartCount">0</span>)';
+      alert('เกิดข้อผิดพลาด: ' + (err && err.message ? err.message : err));
+      renderCart();
+    })
+    .saveOrder(order);
+}
+
+function showSummary(res, order, items, total, gotPromo){
+  document.getElementById('sumOrderId').textContent = res.orderId || '-';
+  document.getElementById('sumName').textContent = order.customerName;
+  document.getElementById('sumPhone').textContent = order.phone;
+  document.getElementById('sumDate').textContent = order.bakeDate;
+  document.getElementById('sumLocation').textContent = order.pickupLocation || '-';
+  document.getElementById('sumItems').innerHTML = items.map(it =>
+    `<div class="flex justify-between">
+       <span>${it.name} × ${it.qty}</span>
+       <span class="font-bold">${money(it.lineTotal)}</span>
+     </div>`).join('');
+  document.getElementById('sumTotal').textContent = money(total);
+  document.getElementById('sumPromoNote').style.display = gotPromo ? 'block' : 'none';
+  document.getElementById('summaryModal').classList.add('show');
+
+  cart = {};
+  document.getElementById('pickLocation').value = '';
+  renderProducts();
+  renderCart();
+}
+
+function closeSummary(){ document.getElementById('summaryModal').classList.remove('show'); }
+
+async function saveSummaryImage(){
+  const el = document.getElementById('summaryCard');
+  const canvas = await html2canvas(el, { scale: 2, backgroundColor: '#fff' });
+  const a = document.createElement('a');
+  a.download = '648_order_summary.png';
+  a.href = canvas.toDataURL('image/png');
+  a.click();
+}
+
+renderProducts();
+renderCart();
+prefillMemberInfo();
+</script>
+</body>
+</html>
