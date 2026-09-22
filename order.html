@@ -70,7 +70,6 @@
 
 <body>
 
-  <!-- ===== หน้าจอรอตอน LIFF กำลังโหลด/ตรวจสอบตัวตน ===== -->
   <div id="liffLoading" class="liff-loading">
     <span class="spin" style="width:36px;height:36px;border-width:4px;"></span>
     <div class="font-bold muted" style="color:#6b4226;">กำลังโหลด...</div>
@@ -203,7 +202,6 @@
     </div>
   </div>
 
-  <!-- ===== SIGNUP MODAL: เชิญสมัครสมาชิกเบาๆ (ข้ามได้) ===== -->
   <div id="signupModal" class="modal">
     <div class="promocard">
       <div style="font-size:40px;">🎉</div>
@@ -223,18 +221,37 @@
 <script>
 'use strict';
 
-/* ===== LIFF Config: LIFF สำหรับหน้า Order โดยเฉพาะ ===== */
+/* ===== LIFF Config ===== */
 const LIFF_ID = '2011234449-KO3mK4Bf';
-
-/* ค่าเหล่านี้จะถูกเติมค่าจริงหลัง liff.init() + liff.getProfile() สำเร็จ
-   (ไม่ใช่อ่านจาก URL parameter แบบเดิมอีกต่อไป) */
 let LINE_USER_ID = '';
 let LINE_NAME = '';
+
+/* ===== Backend API (Apps Script) — เรียกผ่าน fetch() แทน google.script.run
+   เพราะหน้านี้ย้ายมาอยู่ Vercel แล้ว ไม่ใช่หน้าที่ Apps Script เสิร์ฟเอง ===== */
+const API_BASE_URL = 'https://script.google.com/macros/s/AKfycbzRz-C9HeY03xi0c4n_431xuYFfA9aHnreKvcEP7zl1dhbVZhhphbn8lrePthX-26drZA/exec';
+
+async function apiGet(params){
+  const qs = new URLSearchParams(params).toString();
+  const res = await fetch(API_BASE_URL + '?' + qs);
+  return res.json();
+}
+
+/* ใช้ Content-Type: text/plain ตั้งใจ — ถ้าใช้ application/json เบราว์เซอร์จะส่ง
+   preflight (OPTIONS) ไปก่อน ซึ่ง Apps Script เว็บแอปไม่รองรับ ทำให้ request ล้มเหลว
+   ฝั่ง Apps Script ยังอ่าน e.postData.contents เป็น JSON string ได้ปกติไม่ว่าจะประกาศ
+   Content-Type เป็นอะไรก็ตาม จึงไม่กระทบการทำงานฝั่ง backend เลย */
+async function apiPost(payload){
+  const res = await fetch(API_BASE_URL, {
+    method: 'POST',
+    headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+    body: JSON.stringify(payload)
+  });
+  return res.json();
+}
 
 const FULL = 730, HALF = 365, PIZZA = 250;
 const PROMO_THRESHOLD = 400;
 
-/* ===== ที่เก็บรูปภาพสินค้า (Vercel) — ไฟล์อยู่ที่ root ตรงๆ ไม่มีโฟลเดอร์ images/ ===== */
 const IMAGE_BASE_URL = 'https://648-nu.vercel.app/';
 
 function imgUrl(code){
@@ -285,39 +302,38 @@ function nextMonday(){
 }
 document.getElementById('pickDate').value = nextMonday();
 
-/* ===== เช็คสถานะสมาชิก: ถ้าเป็นสมาชิกแล้ว prefill ชื่อ/เบอร์/จุดนัดรับ
-   ถ้ายังไม่เคยสมัคร (และรู้ lineUserId จริงจาก LIFF) เด้ง popup ชวนสมัครแบบเบาๆ ===== */
-function prefillMemberInfo(){
+/* ===== เช็คสถานะสมาชิก ผ่าน fetch() (แทน google.script.run) ===== */
+async function prefillMemberInfo(){
   if (!LINE_USER_ID) return;
   if (LINE_NAME) document.getElementById('custLine').value = LINE_NAME;
 
-  google.script.run
-    .withSuccessHandler(function(res){
-      if (res && res.ok && res.registered && res.member) {
-        document.getElementById('custName').value = res.member.customerName || '';
-        document.getElementById('custPhone').value = res.member.phone || '';
-        if (res.member.lastPickupLocation) {
-          document.getElementById('pickLocation').value = res.member.lastPickupLocation;
-        }
-        const bar = document.getElementById('memberBar');
-        const txt = document.getElementById('memberBarText');
-        txt.textContent = 'เชื่อมสมาชิก: ' + (res.member.customerName || '') + ' (' + (res.member.customerId || '') + ')';
-        bar.style.display = 'flex';
-      } else if (res && res.ok && res.registered === false) {
-        // ยังไม่เคยสมัคร -> ชวนสมัครแบบเบาๆ (ข้ามได้)
-        document.getElementById('signupName').textContent = LINE_NAME || 'ลูกค้า';
-        document.getElementById('signupModal').classList.add('show');
+  try {
+    const res = await apiGet({ api: 'getMemberByLineId', lineUserId: LINE_USER_ID });
+
+    if (res && res.ok && res.registered && res.member) {
+      document.getElementById('custName').value = res.member.customerName || '';
+      document.getElementById('custPhone').value = res.member.phone || '';
+      if (res.member.lastPickupLocation) {
+        document.getElementById('pickLocation').value = res.member.lastPickupLocation;
       }
-    })
-    .withFailureHandler(function(){})
-    .getMemberByLineId(LINE_USER_ID);
+      const bar = document.getElementById('memberBar');
+      const txt = document.getElementById('memberBarText');
+      txt.textContent = 'เชื่อมสมาชิก: ' + (res.member.customerName || '') + ' (' + (res.member.customerId || '') + ')';
+      bar.style.display = 'flex';
+    } else if (res && res.ok && res.registered === false) {
+      document.getElementById('signupName').textContent = LINE_NAME || 'ลูกค้า';
+      document.getElementById('signupModal').classList.add('show');
+    }
+  } catch (err) {
+    console.error('prefillMemberInfo error:', err);
+  }
 }
 
 function skipSignup(){
   document.getElementById('signupModal').classList.remove('show');
 }
 
-function submitSignup(){
+async function submitSignup(){
   const phone = document.getElementById('signupPhone').value.trim();
   if (!phone){ alert('กรุณากรอกเบอร์โทร'); return; }
 
@@ -326,36 +342,37 @@ function submitSignup(){
   btn.disabled = true;
   btn.innerHTML = '<span class="spin"></span>';
 
-  google.script.run
-    .withSuccessHandler(function(res){
-      btn.disabled = false;
-      btn.textContent = originalText;
-      if (!res || !res.ok){
-        alert((res && res.error) || 'สมัครไม่สำเร็จ กรุณาลองใหม่');
-        return;
-      }
-      const member = res.member || {};
-      document.getElementById('custName').value = member.customerName || LINE_NAME || '';
-      document.getElementById('custPhone').value = member.phone || phone;
-      document.getElementById('signupModal').classList.remove('show');
-
-      const bar = document.getElementById('memberBar');
-      const txt = document.getElementById('memberBarText');
-      txt.textContent = '🎉 สมัครสมาชิกสำเร็จ! ยินดีต้อนรับคุณ ' + (member.customerName || '');
-      bar.style.display = 'flex';
-    })
-    .withFailureHandler(function(err){
-      btn.disabled = false;
-      btn.textContent = originalText;
-      alert('เกิดข้อผิดพลาด: ' + (err && err.message ? err.message : err));
-    })
-    .registerMember({
+  try {
+    const res = await apiGet({
+      api: 'registerMember',
       lineUserId: LINE_USER_ID,
       customerName: LINE_NAME || 'ลูกค้า 648',
       phone: phone,
       lineName: LINE_NAME,
-      consentMarketing: true
+      consentMarketing: 'true'
     });
+
+    btn.disabled = false;
+    btn.textContent = originalText;
+
+    if (!res || !res.ok){
+      alert((res && res.error) || 'สมัครไม่สำเร็จ กรุณาลองใหม่');
+      return;
+    }
+    const member = res.member || {};
+    document.getElementById('custName').value = member.customerName || LINE_NAME || '';
+    document.getElementById('custPhone').value = member.phone || phone;
+    document.getElementById('signupModal').classList.remove('show');
+
+    const bar = document.getElementById('memberBar');
+    const txt = document.getElementById('memberBarText');
+    txt.textContent = '🎉 สมัครสมาชิกสำเร็จ! ยินดีต้อนรับคุณ ' + (member.customerName || '');
+    bar.style.display = 'flex';
+  } catch (err) {
+    btn.disabled = false;
+    btn.textContent = originalText;
+    alert('เกิดข้อผิดพลาด: ' + (err && err.message ? err.message : err));
+  }
 }
 
 function onProductImgError(imgEl){
@@ -477,7 +494,7 @@ function proceedWithoutPromo(){
   doSubmitOrder();
 }
 
-function doSubmitOrder(){
+async function doSubmitOrder(){
   const items = cartArray();
   const name = document.getElementById('custName').value.trim();
   const phone = document.getElementById('custPhone').value.trim();
@@ -511,20 +528,18 @@ function doSubmitOrder(){
   btn.disabled = true;
   btn.innerHTML = '<span class="spin"></span>';
 
-  google.script.run
-    .withSuccessHandler(function(res){
-      btn.disabled = false;
-      btn.innerHTML = 'ส่งออเดอร์ (<span id="cartCount">0</span>)';
-      if (!res || !res.ok){ alert((res && res.error) || 'ส่งออเดอร์ไม่สำเร็จ กรุณาลองใหม่'); renderCart(); return; }
-      showSummary(res, order, items, totalAmount, gotPromo);
-    })
-    .withFailureHandler(function(err){
-      btn.disabled = false;
-      btn.innerHTML = 'ส่งออเดอร์ (<span id="cartCount">0</span>)';
-      alert('เกิดข้อผิดพลาด: ' + (err && err.message ? err.message : err));
-      renderCart();
-    })
-    .saveOrder(order);
+  try {
+    const res = await apiPost({ api: 'saveOrder', order: order });
+    btn.disabled = false;
+    btn.innerHTML = 'ส่งออเดอร์ (<span id="cartCount">0</span>)';
+    if (!res || !res.ok){ alert((res && res.error) || 'ส่งออเดอร์ไม่สำเร็จ กรุณาลองใหม่'); renderCart(); return; }
+    showSummary(res, order, items, totalAmount, gotPromo);
+  } catch (err) {
+    btn.disabled = false;
+    btn.innerHTML = 'ส่งออเดอร์ (<span id="cartCount">0</span>)';
+    alert('เกิดข้อผิดพลาด: ' + (err && err.message ? err.message : err));
+    renderCart();
+  }
 }
 
 function showSummary(res, order, items, total, gotPromo){
@@ -559,8 +574,6 @@ async function saveSummaryImage(){
   a.click();
 }
 
-/* ===== เริ่มต้นแอป: ต้องรอ liff.init() ให้เสร็จก่อน ถึงจะรู้ว่าใครเปิดอยู่
-   (หน้าจอ liffLoading จะบังหน้าจอไว้จนกว่าขั้นตอนนี้จะจบ) ===== */
 async function initLiff(){
   try {
     await liff.init({ liffId: LIFF_ID });
@@ -570,13 +583,11 @@ async function initLiff(){
       LINE_USER_ID = profile.userId || '';
       LINE_NAME = profile.displayName || '';
     } else {
-      // ไม่ได้ล็อกอิน LINE (เช่น เปิดจากเบราว์เซอร์นอก LINE) -> ให้ล็อกอินก่อน
       liff.login();
-      return; // liff.login() จะ redirect ออกไปหน้า LINE login แล้วพากลับมาเอง
+      return;
     }
   } catch (err) {
     console.error('LIFF init error:', err);
-    // ถึง LIFF จะมีปัญหา ก็ยังให้ลูกค้าสั่งซื้อแบบ guest ได้ตามปกติ ไม่ปิดกั้นการขาย
   } finally {
     document.getElementById('liffLoading').classList.add('hide');
     renderProducts();
