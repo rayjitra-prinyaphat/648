@@ -1,0 +1,295 @@
+<!doctype html>
+<html lang="th">
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>648 Sourdough LAB CLUB · Member</title>
+
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@400;600;700;800&display=swap" rel="stylesheet">
+
+  <style>
+    * { font-family: 'Sarabun', sans-serif !important; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+    html, body { margin: 0; width: 100%; min-height: 100%; background: #f8fafc; color: #0f172a; }
+    body { padding: env(safe-area-inset-top) 0 env(safe-area-inset-bottom); }
+    input, select, button { font-size: 16px !important; }
+    .wrap { max-width: 460px; margin: 0 auto; padding: 16px 14px 40px; }
+    .header { background: #0f172a; color: #fff; padding: 16px 18px; border-radius: 0 0 22px 22px; display: flex; justify-content: space-between; align-items: center; }
+    .card { background: #fff; border: 1px solid #e2e8f0; border-radius: 18px; box-shadow: 0 2px 12px rgba(15,23,42,.04); }
+    .num { font-weight: 900; letter-spacing: -.045em; }
+    .muted { color: #64748b; }
+    .soft-blue { background: #e0f2fe; }
+    .soft-orange { background: #fff7ed; }
+    .soft-green { background: #f0fdf4; }
+    .view { display: none; }
+    .view.active { display: block; }
+    .spin { display: inline-block; width: 22px; height: 22px; border: 3px solid #e2e8f0; border-top-color: #0f172a; border-radius: 50%; animation: spin .7s linear infinite; }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    .btn-primary { background: #0f172a; color: #fff; border-radius: 16px; padding: 14px; font-weight: 900; width: 100%; font-size: 17px !important; border: none; }
+    .btn-primary:disabled { opacity: .5; }
+    #debugBox { background:#0f172a; color:#7dd3fc; font-family:ui-monospace,monospace; font-size:12px; border-radius:12px; padding:12px; margin-top:14px; white-space:pre-wrap; word-break:break-all; line-height:1.5; }
+    .step { color:#fbbf24; } .okc { color:#4ade80; } .errc { color:#f87171; }
+  </style>
+</head>
+
+<body>
+
+  <header class="header">
+    <div>
+      <div class="text-xs text-slate-300">648 Sourdough LAB CLUB</div>
+      <div class="font-black text-lg leading-5">Member Card</div>
+    </div>
+    <div class="font-black text-orange-300">F⁵ · w⁷⁶</div>
+  </header>
+
+  <div class="wrap">
+
+    <!-- LOADING + DEBUG -->
+    <section id="view-loading" class="view active">
+      <div class="text-center py-8">
+        <div class="spin"></div>
+        <div id="loadingMsg" class="muted font-bold mt-4">กำลังเริ่มต้น...</div>
+      </div>
+      <div id="debugBox">debug log:</div>
+    </section>
+
+    <!-- REGISTER -->
+    <section id="view-register" class="view">
+      <div class="card p-5 soft-blue text-center mb-4">
+        <div id="regLineAvatar" class="mx-auto"></div>
+        <div class="text-xs font-black muted mt-2">ยินดีต้อนรับสู่</div>
+        <div class="font-black text-2xl">648 LAB CLUB</div>
+        <div class="muted font-bold text-sm mt-1">สมัครสมาชิกเพื่อสะสมแต้มและรับสิทธิพิเศษ</div>
+      </div>
+      <div class="card p-4 space-y-3">
+        <div>
+          <label class="text-xs font-black muted">ชื่อ-นามสกุล *</label>
+          <input id="regName" class="border rounded-xl px-3 py-3 font-bold w-full mt-1" placeholder="ชื่อของคุณ">
+        </div>
+        <div>
+          <label class="text-xs font-black muted">เบอร์โทร *</label>
+          <input id="regPhone" type="tel" inputmode="numeric" class="border rounded-xl px-3 py-3 font-bold w-full mt-1" placeholder="08X-XXX-XXXX">
+        </div>
+        <label class="flex items-center gap-2 pt-1">
+          <input id="regConsent" type="checkbox" checked style="width:20px;height:20px">
+          <span class="text-sm font-bold muted">ยินยอมรับข่าวสาร/โปรโมชัน</span>
+        </label>
+        <button id="regSubmit" class="btn-primary" onclick="submitRegister()">สมัครสมาชิก</button>
+      </div>
+    </section>
+
+    <!-- MEMBER CARD -->
+    <section id="view-member" class="view">
+      <div class="card p-5 soft-blue text-center mb-4">
+        <div class="text-xs font-black muted">648 LAB MEMBER</div>
+        <div id="mName" class="font-black text-3xl mt-1">-</div>
+        <div id="mTierBadge" class="inline-block mt-2 px-4 py-1 rounded-full bg-white/70 font-black text-sm">Bronze</div>
+        <div class="grid grid-cols-3 gap-2 mt-4">
+          <div class="bg-white/70 rounded-2xl p-3">
+            <div class="text-xs font-black muted">Points</div>
+            <div id="mPoints" class="num text-2xl text-orange-500">0</div>
+          </div>
+          <div class="bg-white/70 rounded-2xl p-3">
+            <div class="text-xs font-black muted">Orders</div>
+            <div id="mOrders" class="num text-2xl">0</div>
+          </div>
+          <div class="bg-white/70 rounded-2xl p-3">
+            <div class="text-xs font-black muted">Spend</div>
+            <div id="mSpend" class="num text-2xl">0฿</div>
+          </div>
+        </div>
+      </div>
+      <div class="card p-4 mb-4">
+        <div class="flex justify-between items-center">
+          <div>
+            <div class="text-xs font-black muted">สมาชิกเลขที่</div>
+            <div id="mCustomerId" class="font-black">-</div>
+          </div>
+          <div class="text-right">
+            <div class="text-xs font-black muted">เข้าร่วมเมื่อ</div>
+            <div id="mJoinDate" class="font-black">-</div>
+          </div>
+        </div>
+      </div>
+      <div class="card p-4 soft-green text-center mb-4">
+        <div class="font-black">เริ่มสั่งซื้อกันเลย!</div>
+        <div class="muted font-bold text-sm mt-1 mb-2">เลือกเมนูที่ชอบ สะสมแต้มทุกออร์เดอร์</div>
+        <button class="btn-primary" style="background:#059669" onclick="goOrder()">🛒 ไปสั่งซื้อสินค้า</button>
+      </div>
+      <div class="card p-4 soft-orange text-center">
+        <div class="font-black">รีวิว & รับแต้ม</div>
+        <div class="muted font-bold text-sm mt-1 mb-2">แชร์ประสบการณ์ รับ 20 แต้มทันที</div>
+        <button class="btn-primary" style="background:#c2410c" onclick="goReview()">ไปหน้ารีวิว</button>
+      </div>
+      <button class="btn-primary mt-4" style="background:#059669" onclick="closeLiff()">ปิดหน้าต่าง</button>
+    </section>
+
+    <!-- ERROR -->
+    <section id="view-error" class="view">
+      <div class="card p-6 text-center">
+        <div class="text-4xl mb-2">😅</div>
+        <div class="font-black text-lg">เกิดข้อผิดพลาด</div>
+        <div id="errMsg" class="muted font-bold text-sm mt-2 break-words">-</div>
+        <button class="btn-primary mt-4" onclick="location.reload()">ลองใหม่</button>
+      </div>
+      <div id="debugBox2" class="mt-4" style="background:#0f172a; color:#7dd3fc; font-family:ui-monospace,monospace; font-size:12px; border-radius:12px; padding:12px; white-space:pre-wrap; word-break:break-all; line-height:1.5;"></div>
+    </section>
+
+  </div>
+
+<script>
+'use strict';
+
+const LIFF_ID = '2011234449-oaItHRdH';
+const API_BASE = 'https://script.google.com/macros/s/AKfycbzRz-C9HeY03xi0c4n_431xuYFfA9aHnreKvcEP7zl1dhbVZhhphbn8lrePthX-26drZA/exec';
+
+let LINE_PROFILE = null;
+
+function dbg(msg, cls) {
+  const line = (cls ? '['+cls+'] ' : '') + msg;
+  const box = document.getElementById('debugBox');
+  const box2 = document.getElementById('debugBox2');
+  const html = '\n' + (cls==='OK'?'<span class="okc">':cls==='ERR'?'<span class="errc">':cls==='STEP'?'<span class="step">':'<span>') + line + '</span>';
+  if (box) box.innerHTML += html;
+  if (box2) box2.innerHTML += html;
+}
+function show(view) {
+  document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+  document.getElementById('view-' + view).classList.add('active');
+}
+function setLoading(msg) { const el = document.getElementById('loadingMsg'); if (el) el.textContent = msg; }
+function showError(msg) {
+  document.getElementById('errMsg').textContent = msg || 'ไม่ทราบสาเหตุ';
+  const box = document.getElementById('debugBox');
+  const box2 = document.getElementById('debugBox2');
+  if (box && box2) box2.innerHTML = box.innerHTML;
+  show('error');
+}
+function money(n) { return Math.round(Number(n || 0)).toLocaleString('th-TH') + '฿'; }
+function closeLiff() { if (window.liff && liff.isInClient && liff.isInClient()) liff.closeWindow(); }
+
+function goReview() {
+  const uid = LINE_PROFILE ? LINE_PROFILE.userId : '';
+  location.href = 'review.html?lineUserId=' + encodeURIComponent(uid);
+}
+function goOrder() {
+  const uid = LINE_PROFILE ? LINE_PROFILE.userId : '';
+  const name = LINE_PROFILE ? (LINE_PROFILE.displayName || '') : '';
+  window.top.location.href = API_BASE + '?page=order'
+    + '&lineUserId=' + encodeURIComponent(uid)
+    + '&lineName=' + encodeURIComponent(name);
+}
+
+async function callApi(apiName, params) {
+  const q = new URLSearchParams(Object.assign({ api: apiName }, params || {}));
+  const res = await fetch(API_BASE + '?' + q.toString());
+  if (!res.ok) throw new Error('HTTP ' + res.status);
+  return res.json();
+}
+
+async function main() {
+  dbg('เริ่ม main()', 'STEP');
+
+  const watchdog = setTimeout(function() {
+    dbg('WATCHDOG: เกิน 20 วิ ยังไม่เสร็จ', 'ERR');
+    showError('โหลดนานเกินไป (ดู log ด้านล่าง)');
+  }, 20000);
+
+  try {
+    if (typeof liff === 'undefined') {
+      clearTimeout(watchdog);
+      showError('โหลด LIFF SDK ไม่สำเร็จ');
+      return;
+    }
+    dbg('liff SDK โหลดแล้ว', 'OK');
+    dbg('location.href = ' + location.href);
+
+    setLoading('กำลังเชื่อมต่อ LINE (liff.init)...');
+    dbg('เรียก liff.init() ...', 'STEP');
+    await liff.init({ liffId: LIFF_ID });
+    dbg('liff.init() สำเร็จ', 'OK');
+    dbg('isInClient = ' + (liff.isInClient ? liff.isInClient() : 'n/a'));
+    dbg('isLoggedIn = ' + liff.isLoggedIn());
+
+    if (!liff.isLoggedIn()) {
+      dbg('ยังไม่ login -> liff.login()', 'STEP');
+      liff.login();
+      return;
+    }
+
+    setLoading('กำลังดึงโปรไฟล์ (getProfile)...');
+    LINE_PROFILE = await liff.getProfile();
+    dbg('getProfile สำเร็จ: ' + (LINE_PROFILE.displayName || '(no name)'), 'OK');
+    dbg('userId = ' + LINE_PROFILE.userId);
+
+    if (LINE_PROFILE.pictureUrl) {
+      document.getElementById('regLineAvatar').innerHTML =
+        '<img src="' + LINE_PROFILE.pictureUrl + '" style="width:72px;height:72px;border-radius:50%;object-fit:cover">';
+    }
+    if (LINE_PROFILE.displayName) {
+      document.getElementById('regName').value = LINE_PROFILE.displayName;
+    }
+
+    setLoading('กำลังตรวจสอบสมาชิก (backend)...');
+    dbg('เรียก API getMemberByLineId ...', 'STEP');
+    const res = await callApi('getMemberByLineId', { lineUserId: LINE_PROFILE.userId });
+    clearTimeout(watchdog);
+    dbg('backend ตอบกลับแล้ว: ' + JSON.stringify(res), 'OK');
+
+    if (!res || !res.ok) { showError((res && res.error) || 'โหลดข้อมูลไม่สำเร็จ'); return; }
+    if (res.registered) renderMember(res.member);
+    else { dbg('ลูกค้าใหม่ -> หน้าสมัคร', 'OK'); show('register'); }
+
+  } catch (err) {
+    clearTimeout(watchdog);
+    dbg('CATCH: ' + (err && err.message ? err.message : JSON.stringify(err)), 'ERR');
+    showError('init ล้มเหลว: ' + (err && err.message ? err.message : err));
+  }
+}
+
+function submitRegister() {
+  const name = document.getElementById('regName').value.trim();
+  const phone = document.getElementById('regPhone').value.trim();
+  const consent = document.getElementById('regConsent').checked;
+  if (!name) { alert('กรุณากรอกชื่อ'); return; }
+  if (!phone) { alert('กรุณากรอกเบอร์โทร'); return; }
+
+  const btn = document.getElementById('regSubmit');
+  btn.disabled = true; btn.textContent = 'กำลังสมัคร...';
+
+  callApi('registerMember', {
+    lineUserId: LINE_PROFILE.userId,
+    customerName: name, phone: phone,
+    lineName: LINE_PROFILE.displayName || '',
+    consentMarketing: consent
+  }).then(function(res) {
+    btn.disabled = false; btn.textContent = 'สมัครสมาชิก';
+    if (!res || !res.ok) { alert((res && res.error) || 'สมัครไม่สำเร็จ'); return; }
+    renderMember(res.member);
+  }).catch(function(err) {
+    btn.disabled = false; btn.textContent = 'สมัครสมาชิก';
+    alert(err && err.message ? err.message : String(err));
+  });
+}
+
+function renderMember(m) {
+  m = m || {};
+  document.getElementById('mName').textContent = m.customerName || '-';
+  document.getElementById('mTierBadge').textContent = m.tier || 'Bronze';
+  document.getElementById('mPoints').textContent = Number(m.currentPoints || 0).toLocaleString('th-TH');
+  document.getElementById('mOrders').textContent = Number(m.totalOrders || 0).toLocaleString('th-TH');
+  document.getElementById('mSpend').textContent = money(m.totalSpend || 0);
+  document.getElementById('mCustomerId').textContent = m.customerId || '-';
+  document.getElementById('mJoinDate').textContent = m.joinDate || '-';
+  show('member');
+}
+
+main();
+</script>
+</body>
+</html>
