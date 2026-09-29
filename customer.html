@@ -148,6 +148,12 @@
 const LIFF_ID = '2011234449-oaItHRdH';
 const API_BASE = 'https://script.google.com/macros/s/AKfycbzRz-C9HeY03xi0c4n_431xuYFfA9aHnreKvcEP7zl1dhbVZhhphbn8lrePthX-26drZA/exec';
 
+/* เวลารอ: API แต่ละครั้งรอได้ 20 วิ ลองซ้ำ 1 ครั้ง · ทั้งหน้ารอได้ 45 วิ
+   (Apps Script ที่ไม่ได้ถูกเรียกมาสักพักอาจใช้เวลาเริ่มทำงาน 10–30 วิ) */
+const API_TIMEOUT_MS = 20000;
+const API_TRIES = 2;
+const WATCHDOG_MS = 45000;
+
 let LINE_PROFILE = null;
 
 function dbg(msg, cls) {
@@ -185,20 +191,38 @@ function goOrder() {
     + '&lineName=' + encodeURIComponent(name);
 }
 
-async function callApi(apiName, params) {
+/* เรียก API พร้อมจำกัดเวลา และลองใหม่อัตโนมัติถ้าช้าหรือเชื่อมต่อไม่ได้ */
+async function callApi(apiName, params, tries) {
+  tries = tries || API_TRIES;
   const q = new URLSearchParams(Object.assign({ api: apiName }, params || {}));
-  const res = await fetch(API_BASE + '?' + q.toString());
-  if (!res.ok) throw new Error('HTTP ' + res.status);
-  return res.json();
+  for (let i = 1; i <= tries; i++) {
+    const ctrl = new AbortController();
+    const timer = setTimeout(function() { ctrl.abort(); }, API_TIMEOUT_MS);
+    const t0 = Date.now();
+    try {
+      const res = await fetch(API_BASE + '?' + q.toString(), { signal: ctrl.signal });
+      clearTimeout(timer);
+      if (!res.ok) throw new Error('HTTP ' + res.status);
+      const json = await res.json();
+      dbg('API ' + apiName + ' ใช้เวลา ' + ((Date.now() - t0) / 1000).toFixed(1) + ' วิ', 'OK');
+      return json;
+    } catch (err) {
+      clearTimeout(timer);
+      dbg('API ' + apiName + ' ครั้งที่ ' + i + ' ไม่สำเร็จ: ' +
+        (err && err.name === 'AbortError' ? 'เกิน ' + (API_TIMEOUT_MS / 1000) + ' วิ' : (err && err.message ? err.message : err)), 'ERR');
+      if (i === tries) throw err;
+      setLoading('เซิร์ฟเวอร์กำลังเริ่มทำงาน กำลังลองใหม่...');
+    }
+  }
 }
 
 async function main() {
   dbg('เริ่ม main()', 'STEP');
 
   const watchdog = setTimeout(function() {
-    dbg('WATCHDOG: เกิน 20 วิ ยังไม่เสร็จ', 'ERR');
+    dbg('WATCHDOG: เกิน ' + (WATCHDOG_MS / 1000) + ' วิ ยังไม่เสร็จ', 'ERR');
     showError('โหลดนานเกินไป (ดู log ด้านล่าง)');
-  }, 20000);
+  }, WATCHDOG_MS);
 
   try {
     if (typeof liff === 'undefined') {
@@ -218,6 +242,7 @@ async function main() {
 
     if (!liff.isLoggedIn()) {
       dbg('ยังไม่ login -> liff.login()', 'STEP');
+      clearTimeout(watchdog);
       liff.login();
       return;
     }
@@ -235,7 +260,7 @@ async function main() {
       document.getElementById('regName').value = LINE_PROFILE.displayName;
     }
 
-    setLoading('กำลังตรวจสอบสมาชิก (backend)...');
+    setLoading('กำลังตรวจสอบสมาชิก...');
     dbg('เรียก API getMemberByLineId ...', 'STEP');
     const res = await callApi('getMemberByLineId', { lineUserId: LINE_PROFILE.userId });
     clearTimeout(watchdog);
@@ -248,7 +273,10 @@ async function main() {
   } catch (err) {
     clearTimeout(watchdog);
     dbg('CATCH: ' + (err && err.message ? err.message : JSON.stringify(err)), 'ERR');
-    showError('init ล้มเหลว: ' + (err && err.message ? err.message : err));
+    const slow = err && err.name === 'AbortError';
+    showError(slow
+      ? 'เซิร์ฟเวอร์ตอบช้ากว่าปกติ กรุณากด "ลองใหม่" อีกครั้ง'
+      : 'init ล้มเหลว: ' + (err && err.message ? err.message : err));
   }
 }
 
@@ -262,6 +290,7 @@ function submitRegister() {
   const btn = document.getElementById('regSubmit');
   btn.disabled = true; btn.textContent = 'กำลังสมัคร...';
 
+  // registerMember ปลอดภัยที่จะลองซ้ำ: backend เช็ก lineUserId ซ้ำก่อนสร้างสมาชิกใหม่
   callApi('registerMember', {
     lineUserId: LINE_PROFILE.userId,
     customerName: name, phone: phone,
@@ -273,7 +302,9 @@ function submitRegister() {
     renderMember(res.member);
   }).catch(function(err) {
     btn.disabled = false; btn.textContent = 'สมัครสมาชิก';
-    alert(err && err.message ? err.message : String(err));
+    alert(err && err.name === 'AbortError'
+      ? 'เซิร์ฟเวอร์ตอบช้ากว่าปกติ กรุณากดสมัครอีกครั้ง'
+      : (err && err.message ? err.message : String(err)));
   });
 }
 
