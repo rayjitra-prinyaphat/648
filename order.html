@@ -103,6 +103,8 @@
     .spin { display: inline-block; width: 20px; height: 20px; border: 3px solid #e2e8f0; border-top-color: var(--brown); border-radius: 50%; animation: spin .7s linear infinite; }
     @keyframes spin { to { transform: rotate(360deg); } }
 
+    .roundbanner { background: #fff7ed; border: 1px solid #fdba74; color: #7c2d12; border-radius: 14px; padding: 9px 12px; margin-bottom: 4px; font-size: 13px; line-height: 1.5; }
+    .roundbanner span { color: #9a3412; font-weight: 700; }
     .memberbar { background: #dcfce7; border: 1px solid #86efac; border-radius: 14px; padding: 9px 12px; margin-bottom: 10px; font-weight: 700; font-size: 14px; display: flex; align-items: center; gap: 8px; }
     .signup-input { border: 1px solid #cbd5e1; border-radius: 12px; padding: 12px; font-weight: 700; width: 100%; margin-top: 10px; text-align: center; }
     .skiplink { color: #64748b; font-weight: 700; font-size: 13px; text-decoration: underline; background: none; border: none; padding: 10px; }
@@ -139,6 +141,7 @@
 
   <div class="wrap">
     <div id="memberBar" class="memberbar" style="display:none;">✅ <span id="memberBarText">เชื่อมสมาชิกแล้ว</span></div>
+    <div id="roundBanner" class="roundbanner"></div>
 
     <!-- ===== แท็บ เมนูแนะนำ ===== -->
     <section id="view-menu" class="view active">
@@ -239,6 +242,7 @@
         <div>
           <label class="text-xs font-bold muted">วันรับ *</label>
           <select id="pickDate" class="field mt-1"></select>
+          <div id="roundHint" class="text-xs font-bold mt-1" style="color:#9a3412;"></div>
         </div>
       </div>
 
@@ -347,11 +351,14 @@ async function apiPost(payload){
   }
 }
 
-/* ===== รอบรับ ===== */
+/* ===== รอบรับ =====
+   กติกา: สั่งภายในวันศุกร์ (นับรวมวันศุกร์) → รับวันอังคาร / พฤหัสบดี ของสัปดาห์ถัดไป
+   สั่งวันเสาร์-อาทิตย์ → ถือเป็นรอบสัปดาห์ใหม่ รับอังคาร / พฤหัสบดี ของอีกสัปดาห์ถัดไป */
 const PICKUP_DAYS = [2, 4];          // 0=อา 1=จ 2=อ 3=พ 4=พฤ 5=ศ 6=ส
-const PICKUP_LEAD_DAYS = 2;
-const PICKUP_ROUNDS_SHOWN = 4;
+const ORDER_CUTOFF_DAY = 5;          // วันสุดท้ายที่สั่งได้ของรอบ (5 = ศุกร์)
+const PICKUP_WEEKS_SHOWN = 2;        // แสดงรอบรับกี่สัปดาห์ (สัปดาห์แรก = รอบที่สั่งทัน)
 const DAY_TH = ['อาทิตย์','จันทร์','อังคาร','พุธ','พฤหัสบดี','ศุกร์','เสาร์'];
+const DAY_TH_SHORT = ['อา.','จ.','อ.','พ.','พฤ.','ศ.','ส.'];
 
 /* ===== สินค้า (ราคา/น้ำหนักจริงคำนวณซ้ำที่ server) ===== */
 const PLAIN_F = 720, PLAIN_H = 360, FLAVOR_F = 690, FLAVOR_H = 345, PIZZA = 250;
@@ -821,19 +828,38 @@ function showTab(name){
 
 /* ===== รอบรับ ===== */
 function ymd(d){ return d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0') + '-' + String(d.getDate()).padStart(2,'0'); }
+function addDays(d, n){ const x = new Date(d); x.setDate(x.getDate() + n); return x; }
+function thShort(d){ return DAY_TH_SHORT[d.getDay()] + ' ' + d.toLocaleDateString('th-TH', { day:'numeric', month:'short' }); }
+
+/* หาวันจันทร์ของสัปดาห์ที่จะรับสินค้า ตามกติกาตัดรอบวันศุกร์ */
+function pickupWeekMonday(today){
+  const day = today.getDay();                                   // 0=อา ... 6=ส
+  const nextMonday = addDays(today, ((8 - day) % 7) || 7);
+  const passedCutoff = day === 0 || day > ORDER_CUTOFF_DAY;     // เสาร์-อาทิตย์ = เลยวันตัดรอบแล้ว
+  return passedCutoff ? addDays(nextMonday, 7) : nextMonday;
+}
+
 function renderRounds(){
   const today = new Date(); today.setHours(0,0,0,0);
-  const min = new Date(today); min.setDate(min.getDate() + PICKUP_LEAD_DAYS);
+  const monday = pickupWeekMonday(today);
+  const cutoff = addDays(monday, -7 + (ORDER_CUTOFF_DAY - 1));  // ศุกร์ก่อนสัปดาห์รับ
   const out = [];
-  for (let i = 0; out.length < PICKUP_ROUNDS_SHOWN && i < 60; i++) {
-    const d = new Date(today); d.setDate(today.getDate() + i);
-    if (PICKUP_DAYS.indexOf(d.getDay()) !== -1 && d >= min) out.push(d);
+  for (let w = 0; w < PICKUP_WEEKS_SHOWN; w++) {
+    PICKUP_DAYS.forEach(function(dow){ out.push(addDays(monday, w * 7 + (dow - 1))); });
   }
-  document.getElementById('pickDate').innerHTML = out.map(function(d){
-    return '<option value="' + ymd(d) + '">' + d.toLocaleDateString('th-TH', { weekday:'long', day:'numeric', month:'short' }) + '</option>';
+  document.getElementById('pickDate').innerHTML = out.map(function(d, i){
+    const label = d.toLocaleDateString('th-TH', { weekday:'long', day:'numeric', month:'short' });
+    return '<option value="' + ymd(d) + '">' + label + (i < PICKUP_DAYS.length ? ' (รอบถัดไป)' : '') + '</option>';
   }).join('');
+
+  const days = PICKUP_DAYS.map(function(n){ return DAY_TH[n]; }).join(' / ');
   document.getElementById('roundInfo').innerHTML =
-    'รับทุกวัน' + PICKUP_DAYS.map(function(n){ return DAY_TH[n]; }).join(' / ') + '<br>สั่งล่วงหน้า ' + PICKUP_LEAD_DAYS + ' วัน';
+    'สั่งภายในวัน' + DAY_TH[ORDER_CUTOFF_DAY] + '<br>รับ' + days + ' สัปดาห์ถัดไป';
+  document.getElementById('roundHint').textContent =
+    'สั่งภายใน ' + thShort(cutoff) + ' → รับ ' + out.slice(0, PICKUP_DAYS.length).map(thShort).join(' หรือ ');
+  document.getElementById('roundBanner').innerHTML =
+    '📅 <b>สั่งภายในวัน' + DAY_TH[ORDER_CUTOFF_DAY] + ' รับวัน' + days + ' ของสัปดาห์ถัดไป</b><br>' +
+    '<span>รอบนี้ปิดรับ ' + thShort(cutoff) + ' · รับ ' + out.slice(0, PICKUP_DAYS.length).map(thShort).join(' หรือ ') + '</span>';
 }
 
 /* ===== แท็บ เมนูแนะนำ ===== */
