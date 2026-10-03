@@ -183,12 +183,10 @@ function goReview() {
   const uid = LINE_PROFILE ? LINE_PROFILE.userId : '';
   location.href = 'review.html?lineUserId=' + encodeURIComponent(uid);
 }
+/* หน้าสั่งซื้อจริงอยู่บน Vercel (order.html) เปิดผ่าน LIFF เพื่อให้ได้ข้อมูล LINE อัตโนมัติ */
+const ORDER_LIFF_URL = 'https://liff.line.me/2011234449-KO3mK4Bf';
 function goOrder() {
-  const uid = LINE_PROFILE ? LINE_PROFILE.userId : '';
-  const name = LINE_PROFILE ? (LINE_PROFILE.displayName || '') : '';
-  window.top.location.href = API_BASE + '?page=order'
-    + '&lineUserId=' + encodeURIComponent(uid)
-    + '&lineName=' + encodeURIComponent(name);
+  window.top.location.href = ORDER_LIFF_URL;
 }
 
 /* เรียก API พร้อมจำกัดเวลา และลองใหม่อัตโนมัติถ้าช้าหรือเชื่อมต่อไม่ได้ */

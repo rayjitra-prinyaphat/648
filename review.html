@@ -136,7 +136,15 @@
 
 const LIFF_ID = '2011234449-FrUTiPtW';
 const API_BASE = 'https://script.google.com/macros/s/AKfycbzRz-C9HeY03xi0c4n_431xuYFfA9aHnreKvcEP7zl1dhbVZhhphbn8lrePthX-26drZA/exec';
-const ORDER_URL = API_BASE + '?page=order';
+
+/* หน้าสั่งซื้อจริงอยู่บน Vercel (order.html) เปิดผ่าน LIFF เพื่อให้ได้ข้อมูล LINE อัตโนมัติ */
+const ORDER_LIFF_URL = 'https://liff.line.me/2011234449-KO3mK4Bf';
+
+/* เวลารอ: API แต่ละครั้งรอได้ 20 วิ ลองซ้ำ 1 ครั้ง · ทั้งหน้ารอได้ 45 วิ
+   (Apps Script ที่ไม่ได้ถูกเรียกมาสักพักอาจใช้เวลาเริ่มทำงาน 10–30 วิ) */
+const API_TIMEOUT_MS = 20000;
+const API_TRIES = 2;
+const WATCHDOG_MS = 45000;
 
 const urlParams = new URLSearchParams(window.location.search);
 let LINE_USER_ID = urlParams.get('lineUserId') || '';
@@ -167,33 +175,49 @@ function showError(msg) {
 }
 function esc(s){ return String(s==null?'':s).replace(/[&<>"']/g, function(c){ return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]; }); }
 function goRegister() { location.href = 'customer.html'; }
-function goOrder() {
-  window.top.location.href = ORDER_URL
-    + '&lineUserId=' + encodeURIComponent(LINE_USER_ID)
-    + '&lineName=' + encodeURIComponent(LINE_DISPLAY_NAME);
-}
+function goOrder() { window.top.location.href = ORDER_LIFF_URL; }
+function isSlow(err) { return err && err.name === 'AbortError'; }
 
-async function callApi(apiName, params) {
+/* เรียก API พร้อมจำกัดเวลา และลองใหม่อัตโนมัติถ้าช้าหรือเชื่อมต่อไม่ได้
+   tries = 1 สำหรับคำสั่งที่ห้ามส่งซ้ำ (เช่น ส่งรีวิว ที่ให้แต้ม) */
+async function callApi(apiName, params, tries) {
+  tries = tries || API_TRIES;
   const q = new URLSearchParams(Object.assign({ api: apiName }, params || {}));
-  const res = await fetch(API_BASE + '?' + q.toString());
-  if (!res.ok) throw new Error('HTTP ' + res.status);
-  return res.json();
+  for (let i = 1; i <= tries; i++) {
+    const ctrl = new AbortController();
+    const timer = setTimeout(function() { ctrl.abort(); }, API_TIMEOUT_MS);
+    const t0 = Date.now();
+    try {
+      const res = await fetch(API_BASE + '?' + q.toString(), { signal: ctrl.signal });
+      clearTimeout(timer);
+      if (!res.ok) throw new Error('HTTP ' + res.status);
+      const json = await res.json();
+      dbg('API ' + apiName + ' ใช้เวลา ' + ((Date.now() - t0) / 1000).toFixed(1) + ' วิ', 'OK');
+      return json;
+    } catch (err) {
+      clearTimeout(timer);
+      dbg('API ' + apiName + ' ครั้งที่ ' + i + ' ไม่สำเร็จ: ' +
+        (isSlow(err) ? 'เกิน ' + (API_TIMEOUT_MS / 1000) + ' วิ' : (err && err.message ? err.message : err)), 'ERR');
+      if (i === tries) throw err;
+      setLoading('เซิร์ฟเวอร์กำลังเริ่มทำงาน กำลังลองใหม่...');
+    }
+  }
 }
 
 async function main() {
   dbg('เริ่ม main()', 'STEP');
   const watchdog = setTimeout(function() {
-    dbg('WATCHDOG: เกิน 20 วิ ยังไม่เสร็จ', 'ERR');
+    dbg('WATCHDOG: เกิน ' + (WATCHDOG_MS / 1000) + ' วิ ยังไม่เสร็จ', 'ERR');
     showError('โหลดนานเกินไป (ดู log ด้านล่าง)');
-  }, 20000);
+  }, WATCHDOG_MS);
 
   try {
     dbg('location.href = ' + location.href);
 
     if (LINE_USER_ID) {
       dbg('มี lineUserId จาก URL แล้ว: ' + LINE_USER_ID, 'OK');
-      clearTimeout(watchdog);
       await checkMember();
+      clearTimeout(watchdog);
       return;
     }
 
@@ -209,7 +233,7 @@ async function main() {
     await liff.init({ liffId: LIFF_ID });
     dbg('liff.init() สำเร็จ', 'OK');
 
-    if (!liff.isLoggedIn()) { liff.login(); return; }
+    if (!liff.isLoggedIn()) { clearTimeout(watchdog); liff.login(); return; }
 
     setLoading('กำลังดึงโปรไฟล์...');
     const profile = await liff.getProfile();
@@ -217,8 +241,8 @@ async function main() {
     LINE_DISPLAY_NAME = profile.displayName || '';
     dbg('getProfile สำเร็จ: ' + LINE_DISPLAY_NAME, 'OK');
 
-    clearTimeout(watchdog);
     await checkMember();
+    clearTimeout(watchdog);
 
   } catch (err) {
     clearTimeout(watchdog);
@@ -240,8 +264,10 @@ async function checkMember() {
     if (!LINE_DISPLAY_NAME) LINE_DISPLAY_NAME = res.member.lineName || res.member.customerName || '';
     showList();
   } catch (err) {
-    dbg('checkMember CATCH: ' + err.message, 'ERR');
-    showError('เรียก backend ไม่สำเร็จ: ' + err.message);
+    dbg('checkMember CATCH: ' + (err && err.message ? err.message : err), 'ERR');
+    showError(isSlow(err)
+      ? 'เซิร์ฟเวอร์ตอบช้ากว่าปกติ กรุณากด "ลองใหม่" อีกครั้ง'
+      : 'เรียก backend ไม่สำเร็จ: ' + (err && err.message ? err.message : err));
   }
 }
 
@@ -273,7 +299,10 @@ function loadReviewableOrders() {
         '</div>'
       );
     })
-    .catch(function() { el.innerHTML = '<div class="muted font-bold text-center py-4">เกิดข้อผิดพลาด</div>'; });
+    .catch(function(err) {
+      el.innerHTML = '<div class="muted font-bold text-center py-4">' +
+        (isSlow(err) ? 'เซิร์ฟเวอร์ตอบช้า ลองรีเฟรชอีกครั้ง' : 'เกิดข้อผิดพลาด') + '</div>';
+    });
 }
 
 function loadMyReviews() {
@@ -318,12 +347,13 @@ function doSubmitReview() {
   const btn = document.getElementById('submitReviewBtn');
   btn.disabled = true; btn.innerHTML = '<span class="spin"></span>';
 
+  // ส่งครั้งเดียว ไม่ลองซ้ำอัตโนมัติ กันรีวิวซ้ำ/ได้แต้มซ้ำ
   callApi('submitReview', {
     lineUserId: LINE_USER_ID,
     orderId: SELECTED_ORDER,
     rating: SELECTED_RATING,
     comment: document.getElementById('reviewComment').value.trim()
-  }).then(function(res) {
+  }, 1).then(function(res) {
     btn.disabled = false; btn.textContent = 'ส่งรีวิว';
     if (!res || !res.ok) { alert((res && res.error) || 'ส่งรีวิวไม่สำเร็จ'); return; }
     CURRENT_POINTS = Number(res.currentPoints || CURRENT_POINTS);
@@ -332,7 +362,9 @@ function doSubmitReview() {
     show('success');
   }).catch(function(err) {
     btn.disabled = false; btn.textContent = 'ส่งรีวิว';
-    alert(err && err.message ? err.message : String(err));
+    alert(isSlow(err)
+      ? 'เซิร์ฟเวอร์ตอบช้ากว่าปกติ รีวิวอาจถูกบันทึกแล้ว\nกรุณากลับไปหน้ารายการเพื่อตรวจสอบก่อนส่งอีกครั้ง'
+      : (err && err.message ? err.message : String(err)));
   });
 }
 

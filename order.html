@@ -105,6 +105,8 @@
 
     .roundbanner { background: #fff7ed; border: 1px solid #fdba74; color: #7c2d12; border-radius: 14px; padding: 9px 12px; margin-bottom: 4px; font-size: 13px; line-height: 1.5; }
     .roundbanner span { color: #9a3412; font-weight: 700; }
+    body.admin-mode .header { background: #0f172a; }
+    .adminbar { background: #0f172a; color: #fff; border-radius: 14px; padding: 9px 12px; margin-bottom: 10px; font-size: 13px; font-weight: 700; }
     .memberbar { background: #dcfce7; border: 1px solid #86efac; border-radius: 14px; padding: 9px 12px; margin-bottom: 10px; font-weight: 700; font-size: 14px; display: flex; align-items: center; gap: 8px; }
     .signup-input { border: 1px solid #cbd5e1; border-radius: 12px; padding: 12px; font-weight: 700; width: 100%; margin-top: 10px; text-align: center; }
     .skiplink { color: #64748b; font-weight: 700; font-size: 13px; text-decoration: underline; background: none; border: none; padding: 10px; }
@@ -242,6 +244,10 @@
         <div>
           <label class="text-xs font-bold muted">วันรับ *</label>
           <select id="pickDate" class="field mt-1"></select>
+          <div id="customDateWrap" style="display:none;" class="mt-1">
+            <label class="text-xs font-bold muted">หรือเลือกวันอื่น (โหมดร้าน)</label>
+            <input id="pickDateCustom" type="date" class="field mt-1">
+          </div>
           <div id="roundHint" class="text-xs font-bold mt-1" style="color:#9a3412;"></div>
         </div>
       </div>
@@ -274,7 +280,7 @@
       </div>
       <div class="grid grid-cols-2 gap-2 mt-3">
         <button onclick="saveSummaryImage()" class="bg-slate-900 text-white rounded-xl py-3 font-black">บันทึกรูป</button>
-        <button onclick="closeSummary()" class="bg-slate-200 rounded-xl py-3 font-black">ปิด</button>
+        <button onclick="closeSummary()" class="bg-slate-200 rounded-xl py-3 font-black" id="closeSummaryBtn">ปิด</button>
       </div>
     </div>
   </div>
@@ -309,6 +315,11 @@
 
 <script>
 'use strict';
+
+/* ===== โหมด =====
+   ลูกค้า: เปิดผ่าน LINE (LIFF) ตามปกติ
+   ร้าน:   order.html?mode=admin — หน้าเดียวกันทุกอย่าง แต่ไม่ล็อกอิน LINE ใช้คีย์แทนลูกค้า (เปิดจากแท็บ Order ในหน้า Admin) */
+const ADMIN_MODE = new URLSearchParams(location.search).get('mode') === 'admin';
 
 /* ===== LIFF / API ===== */
 const LIFF_ID = '2011234449-KO3mK4Bf';
@@ -395,8 +406,10 @@ const FLAVORS = [
   { name:'Double Cheese & Herb', full:'SD-DCHB-F', half:'SD-DCHB-H' }
 ];
 
-/* ===== DIY — ต้องตรงกับ getDiyConfig() ใน DIY.gs (server คำนวณซ้ำทุกออเดอร์) ===== */
-const DIY_CFG = {
+/* ===== DIY =====
+   รายการรสชาติ / ซอส / ท็อปปิ้ง ดึงจาก server (ชีต DIY_MASTER) ทุกครั้งที่เปิดหน้า
+   ค่าด้านล่างเป็นค่าสำรอง ใช้เฉพาะตอนที่ยังโหลดไม่เสร็จหรือโหลดไม่ได้ (server คำนวณราคาซ้ำทุกออเดอร์) */
+let DIY_CFG = {
   "code": "SD-DIY-F",
   "basePrice": 200,
   "plainDough": 720,
@@ -421,211 +434,6 @@ const DIY_CFG = {
     "4": "เนื้อและชีสแข็ง +50฿"
   },
   "baseRecipe": [],
-  "tastes": [
-    {
-      "id": "none",
-      "key": "",
-      "name": "ธรรมดา",
-      "price": 0,
-      "pct": 0,
-      "pf": "n"
-    },
-    {
-      "id": "cocoa",
-      "key": "cocoa",
-      "name": "Chocolate",
-      "price": 20,
-      "pct": 0.076,
-      "pf": "s"
-    },
-    {
-      "id": "matcha",
-      "key": "matcha",
-      "name": "Matcha",
-      "price": 20,
-      "pct": 0.035,
-      "pf": "s"
-    },
-    {
-      "id": "charcoal",
-      "key": "charcoal",
-      "name": "Charcoal",
-      "price": 20,
-      "pct": 0.018,
-      "pf": "n"
-    }
-  ],
-  "sauces": [
-    {
-      "id": "none",
-      "key": "",
-      "name": "ไม่ใส่",
-      "price": 0,
-      "pct": 0,
-      "pf": "n"
-    },
-    {
-      "id": "pesto",
-      "key": "pesto",
-      "name": "Pesto",
-      "price": 30,
-      "pct": 0.09,
-      "pf": "v"
-    },
-    {
-      "id": "pizza",
-      "key": "pizzaSauce",
-      "name": "Pizza",
-      "price": 20,
-      "pct": 0.1,
-      "pf": "v"
-    },
-    {
-      "id": "truffle",
-      "key": "truffle",
-      "name": "Truffle",
-      "price": 30,
-      "pct": 0.03,
-      "pf": "v"
-    }
-  ],
-  "tops": [
-    {
-      "id": "herb",
-      "key": "garlicHerb",
-      "name": "สมุนไพร",
-      "tier": 0,
-      "pct": 0.02,
-      "w": 1,
-      "pf": "n"
-    },
-    {
-      "id": "sesame",
-      "key": "sesame",
-      "name": "งาขาว-ดำ",
-      "tier": 1,
-      "pct": 0.09,
-      "w": 1,
-      "pf": "n"
-    },
-    {
-      "id": "riceberry",
-      "key": "riceberryCooked",
-      "name": "ข้าวไรซ์เบอร์รี่",
-      "tier": 1,
-      "pct": 0.15,
-      "w": 1,
-      "pf": "n"
-    },
-    {
-      "id": "oat",
-      "key": "oat",
-      "name": "ข้าวโอ๊ต",
-      "tier": 1,
-      "pct": 0.1,
-      "w": 1,
-      "pf": "n"
-    },
-    {
-      "id": "pumpkin",
-      "key": "pumpkinSeed",
-      "name": "เมล็ดฟักทอง",
-      "tier": 1,
-      "pct": 0.125,
-      "w": 1,
-      "pf": "n"
-    },
-    {
-      "id": "sunflower",
-      "key": "sunflowerSeed",
-      "name": "เมล็ดทานตะวัน",
-      "tier": 1,
-      "pct": 0.125,
-      "w": 1,
-      "pf": "n"
-    },
-    {
-      "id": "cranberry",
-      "key": "cranberry",
-      "name": "แครนเบอร์รี่",
-      "tier": 2,
-      "pct": 0.2,
-      "w": 1,
-      "pf": "s"
-    },
-    {
-      "id": "chip",
-      "key": "chocChip",
-      "name": "ช็อกชิพ",
-      "tier": 2,
-      "pct": 0.18,
-      "w": 1,
-      "pf": "s"
-    },
-    {
-      "id": "olive",
-      "key": "olive",
-      "name": "มะกอก",
-      "tier": 2,
-      "pct": 0.18,
-      "w": 0.5,
-      "pf": "v"
-    },
-    {
-      "id": "mozzarella",
-      "key": "mozzarella",
-      "name": "มอสซาเรลล่า",
-      "tier": 3,
-      "pct": 0.15,
-      "w": 1,
-      "pf": "v"
-    },
-    {
-      "id": "walnut",
-      "key": "walnut",
-      "name": "วอลนัท",
-      "tier": 3,
-      "pct": 0.15,
-      "w": 1,
-      "pf": "n"
-    },
-    {
-      "id": "almond",
-      "key": "almond",
-      "name": "อัลมอนด์",
-      "tier": 3,
-      "pct": 0.15,
-      "w": 1,
-      "pf": "n"
-    },
-    {
-      "id": "bacon",
-      "key": "bacon",
-      "name": "เบคอน",
-      "tier": 4,
-      "pct": 0.125,
-      "w": 1,
-      "pf": "v"
-    },
-    {
-      "id": "gouda",
-      "key": "gouda",
-      "name": "เกาด้า",
-      "tier": 4,
-      "pct": 0.15,
-      "w": 1,
-      "pf": "v"
-    },
-    {
-      "id": "cheddar",
-      "key": "cheddar",
-      "name": "เชดด้า",
-      "tier": 4,
-      "pct": 0.18,
-      "w": 1,
-      "pf": "v"
-    }
-  ],
   "slices": [
     {
       "id": "thin",
@@ -691,8 +499,270 @@ const DIY_CFG = {
         "herb"
       ]
     }
+  ],
+  "itemSource": "DEFAULT",
+  "tastes": [
+    {
+      "id": "none",
+      "key": "",
+      "name": "ธรรมดา",
+      "price": 0,
+      "pct": 0,
+      "w": 1,
+      "pf": "n",
+      "active": true
+    },
+    {
+      "id": "cocoa",
+      "key": "cocoa",
+      "name": "Chocolate",
+      "price": 20,
+      "pct": 0.076,
+      "w": 1,
+      "pf": "s",
+      "active": true
+    },
+    {
+      "id": "matcha",
+      "key": "matcha",
+      "name": "Matcha",
+      "price": 20,
+      "pct": 0.035,
+      "w": 1,
+      "pf": "s",
+      "active": true
+    },
+    {
+      "id": "charcoal",
+      "key": "charcoal",
+      "name": "Charcoal",
+      "price": 20,
+      "pct": 0.018,
+      "w": 1,
+      "pf": "n",
+      "active": true
+    }
+  ],
+  "sauces": [
+    {
+      "id": "none",
+      "key": "",
+      "name": "ไม่ใส่",
+      "price": 0,
+      "pct": 0,
+      "w": 1,
+      "pf": "n",
+      "active": true
+    },
+    {
+      "id": "pesto",
+      "key": "pesto",
+      "name": "Pesto",
+      "price": 30,
+      "pct": 0.09,
+      "w": 1,
+      "pf": "v",
+      "active": true
+    },
+    {
+      "id": "pizza",
+      "key": "pizzaSauce",
+      "name": "Pizza",
+      "price": 20,
+      "pct": 0.1,
+      "w": 1,
+      "pf": "v",
+      "active": true
+    },
+    {
+      "id": "truffle",
+      "key": "truffle",
+      "name": "Truffle",
+      "price": 30,
+      "pct": 0.03,
+      "w": 1,
+      "pf": "v",
+      "active": true
+    }
+  ],
+  "tops": [
+    {
+      "id": "herb",
+      "key": "garlicHerb",
+      "name": "สมุนไพร",
+      "tier": 0,
+      "pct": 0.02,
+      "w": 1,
+      "pf": "n",
+      "active": true
+    },
+    {
+      "id": "sesame",
+      "key": "sesame",
+      "name": "งาขาว-ดำ",
+      "tier": 1,
+      "pct": 0.09,
+      "w": 1,
+      "pf": "n",
+      "active": true
+    },
+    {
+      "id": "riceberry",
+      "key": "riceberryCooked",
+      "name": "ข้าวไรซ์เบอร์รี่",
+      "tier": 1,
+      "pct": 0.15,
+      "w": 1,
+      "pf": "n",
+      "active": true
+    },
+    {
+      "id": "oat",
+      "key": "oat",
+      "name": "ข้าวโอ๊ต",
+      "tier": 1,
+      "pct": 0.1,
+      "w": 1,
+      "pf": "n",
+      "active": true
+    },
+    {
+      "id": "pumpkin",
+      "key": "pumpkinSeed",
+      "name": "เมล็ดฟักทอง",
+      "tier": 1,
+      "pct": 0.125,
+      "w": 1,
+      "pf": "n",
+      "active": true
+    },
+    {
+      "id": "sunflower",
+      "key": "sunflowerSeed",
+      "name": "เมล็ดทานตะวัน",
+      "tier": 1,
+      "pct": 0.125,
+      "w": 1,
+      "pf": "n",
+      "active": true
+    },
+    {
+      "id": "cranberry",
+      "key": "cranberry",
+      "name": "แครนเบอร์รี่",
+      "tier": 2,
+      "pct": 0.2,
+      "w": 1,
+      "pf": "s",
+      "active": true
+    },
+    {
+      "id": "chip",
+      "key": "chocChip",
+      "name": "ช็อกชิพ",
+      "tier": 2,
+      "pct": 0.18,
+      "w": 1,
+      "pf": "s",
+      "active": true
+    },
+    {
+      "id": "olive",
+      "key": "olive",
+      "name": "มะกอก",
+      "tier": 2,
+      "pct": 0.18,
+      "w": 0.5,
+      "pf": "v",
+      "active": true
+    },
+    {
+      "id": "mozzarella",
+      "key": "mozzarella",
+      "name": "มอสซาเรลล่า",
+      "tier": 3,
+      "pct": 0.15,
+      "w": 1,
+      "pf": "v",
+      "active": true
+    },
+    {
+      "id": "walnut",
+      "key": "walnut",
+      "name": "วอลนัท",
+      "tier": 3,
+      "pct": 0.15,
+      "w": 1,
+      "pf": "n",
+      "active": true
+    },
+    {
+      "id": "almond",
+      "key": "almond",
+      "name": "อัลมอนด์",
+      "tier": 3,
+      "pct": 0.15,
+      "w": 1,
+      "pf": "n",
+      "active": true
+    },
+    {
+      "id": "bacon",
+      "key": "bacon",
+      "name": "เบคอน",
+      "tier": 4,
+      "pct": 0.125,
+      "w": 1,
+      "pf": "v",
+      "active": true
+    },
+    {
+      "id": "gouda",
+      "key": "gouda",
+      "name": "เกาด้า",
+      "tier": 4,
+      "pct": 0.15,
+      "w": 1,
+      "pf": "v",
+      "active": true
+    },
+    {
+      "id": "cheddar",
+      "key": "cheddar",
+      "name": "เชดด้า",
+      "tier": 4,
+      "pct": 0.18,
+      "w": 1,
+      "pf": "v",
+      "active": true
+    }
   ]
 };
+try {
+  const cached = JSON.parse(localStorage.getItem('diyCfgV1') || 'null');
+  if (cached && cached.tops && cached.tops.length) DIY_CFG = cached;
+} catch (e) {}
+
+async function loadDiyConfig(){
+  try {
+    const res = await apiGet({ api: 'getDiyConfig' });
+    if (!res || !res.ok || !res.cfg || !res.cfg.tops) return;
+    DIY_CFG = res.cfg;
+    try { localStorage.setItem('diyCfgV1', JSON.stringify(res.cfg)); } catch (e) {}
+    // ก้อน DIY ในตะกร้าที่มีวัตถุดิบปิดขายไปแล้ว → เอาออกและแจ้ง
+    const before = diyCart.length;
+    diyCart = diyCart.filter(function(d){ return diyCompute_(DIY_CFG, d.sel).ok && selAllActive(d.sel); });
+    if (diyCart.length < before) toast('มีวัตถุดิบบางรายการหมดฤดูกาล นำก้อน DIY นั้นออกจากตะกร้าแล้ว');
+    if (!selAllActive(DIY_SEL)) DIY_SEL = { taste:'none', sauce:'none', tops:[], slice: DIY_SEL.slice || 'std' };
+    renderMenu(); renderCart();
+    if (document.getElementById('view-diy').classList.contains('active')) diyRender();
+  } catch (e) { console.error('loadDiyConfig', e); }
+}
+function selAllActive(sel){
+  const has = function(list, id){ return id === 'none' || list.some(function(x){ return x.id === id && x.active !== false; }); };
+  return has(DIY_CFG.tastes, sel.taste || 'none') && has(DIY_CFG.sauces, sel.sauce || 'none') &&
+         (sel.tops || []).every(function(id){ return has(DIY_CFG.tops, id); });
+}
 
 /* สำเนาจาก diyCompute_() ใน DIY.gs — ห้ามแก้แยก */
 function diyCompute_(cfg, sel) {
@@ -930,16 +1000,16 @@ function chip(label, sub, on, r, onclick){
 function diyRender(){
   const cur = diyCompute_(DIY_CFG, DIY_SEL);
 
-  document.getElementById('diyTaste').innerHTML = DIY_CFG.tastes.map(function(t){
+  document.getElementById('diyTaste').innerHTML = DIY_CFG.tastes.filter(function(x){ return x.active !== false; }).map(function(t){
     return chip(t.name, t.price ? '+' + t.price + '฿' : 'ไม่เพิ่ม', DIY_SEL.taste === t.id, diyTry({ taste: t.id }), "diySet('taste','" + t.id + "')");
   }).join('');
 
-  document.getElementById('diySauce').innerHTML = DIY_CFG.sauces.map(function(s){
+  document.getElementById('diySauce').innerHTML = DIY_CFG.sauces.filter(function(x){ return x.active !== false; }).map(function(s){
     return chip(s.name, s.price ? '+' + s.price + '฿' : 'ไม่เพิ่ม', DIY_SEL.sauce === s.id, diyTry({ sauce: s.id }), "diySet('sauce','" + s.id + "')");
   }).join('');
 
   document.getElementById('diyTops').innerHTML = [0,1,2,3,4].map(function(tier){
-    const list = DIY_CFG.tops.filter(function(x){ return x.tier === tier; });
+    const list = DIY_CFG.tops.filter(function(x){ return x.tier === tier && x.active !== false; });
     if (!list.length) return '';
     return '<div class="tier-label">' + esc(DIY_CFG.tierName[tier]) + '</div><div class="row">' +
       list.map(function(x){
@@ -1130,6 +1200,10 @@ async function submitSignup(ev){
 }
 
 /* ===== ส่งออเดอร์ ===== */
+function chosenBakeDate(){
+  const c = document.getElementById('pickDateCustom');
+  return (ADMIN_MODE && c && c.value) ? c.value : document.getElementById('pickDate').value;
+}
 function markField(id, bad){ document.getElementById(id).classList.toggle('err', !!bad); }
 
 function submitOrder(){
@@ -1137,7 +1211,7 @@ function submitOrder(){
   const name = document.getElementById('custName').value.trim();
   const phone = document.getElementById('custPhone').value.trim();
   const pickLocation = document.getElementById('pickLocation').value.trim();
-  const pickDate = document.getElementById('pickDate').value;
+  const pickDate = chosenBakeDate();
 
   markField('custName', !name); markField('custPhone', !phone); markField('pickLocation', !pickLocation);
   if (!items.length) { toast('กรุณาเลือกสินค้าอย่างน้อย 1 รายการ'); return; }
@@ -1149,7 +1223,7 @@ function submitOrder(){
   if (!pickDate) { toast('กรุณาเลือกวันรับ'); return; }
 
   const totalAmount = items.reduce(function(s, it){ return s + it.lineTotal; }, 0);
-  if (totalAmount < PROMO_THRESHOLD) {
+  if (totalAmount < PROMO_THRESHOLD && !ADMIN_MODE) {
     document.getElementById('promoCurrentTotal').textContent = money(totalAmount);
     document.getElementById('promoNeedMore').textContent = money(PROMO_THRESHOLD - totalAmount);
     document.getElementById('promoModal').classList.add('show');
@@ -1168,8 +1242,9 @@ async function doSubmitOrder(){
     customerName: document.getElementById('custName').value.trim(),
     phone: document.getElementById('custPhone').value.trim(),
     lineName: document.getElementById('custLine').value.trim(),
-    lineUserId: LINE_USER_ID,
-    bakeDate: document.getElementById('pickDate').value,
+    lineUserId: ADMIN_MODE ? '' : LINE_USER_ID,
+    orderSource: ADMIN_MODE ? 'admin' : 'customer',
+    bakeDate: chosenBakeDate(),
     pickupLocation: document.getElementById('pickLocation').value.trim(),
     paymentStatus: 'Pending',
     orderStatus: 'New',
@@ -1203,7 +1278,9 @@ function showSummary(res, order, items, total, gotPromo){
   document.getElementById('sumOrderId').textContent = res.orderId || '-';
   document.getElementById('sumName').textContent = order.customerName;
   document.getElementById('sumPhone').textContent = order.phone;
-  document.getElementById('sumDate').textContent = sel.options[sel.selectedIndex] ? sel.options[sel.selectedIndex].text : order.bakeDate;
+  const custom = document.getElementById('pickDateCustom');
+  document.getElementById('sumDate').textContent = (ADMIN_MODE && custom.value) ? order.bakeDate
+    : (sel.options[sel.selectedIndex] ? sel.options[sel.selectedIndex].text : order.bakeDate);
   document.getElementById('sumLocation').textContent = order.pickupLocation || '-';
   document.getElementById('sumItems').innerHTML = items.map(function(it){
     const nm = it.diySel ? (it.hotPick ? '' : 'DIY · ') + it.name.replace(/^DIY: /, '') + (it.diySel.slice !== 'std' ? ' · หั่น' + it.sliceName.split(' ')[0] : '') : it.name;
@@ -1216,6 +1293,10 @@ function showSummary(res, order, items, total, gotPromo){
 
   cart = {}; diyCart = [];
   document.getElementById('pickLocation').value = '';
+  if (ADMIN_MODE) {
+    ['custName','custPhone','custLine','pickDateCustom'].forEach(function(id){ document.getElementById(id).value = ''; });
+    try { window.parent.postMessage({ type: '648-order-saved', orderId: res.orderId || '', total: total }, '*'); } catch (e) {}
+  }
   renderMenu(); renderCart();
 }
 
@@ -1231,7 +1312,22 @@ async function saveSummaryImage(){
 }
 
 /* ===== เริ่มต้น ===== */
+function initAdminMode(){
+  document.body.classList.add('admin-mode');
+  document.getElementById('liffLoading').classList.add('hide');
+  document.querySelector('.header div div:last-child').textContent = 'คีย์ออเดอร์ (โหมดร้าน)';
+  document.getElementById('customDateWrap').style.display = 'block';
+  document.getElementById('closeSummaryBtn').textContent = 'สั่งใบต่อไป';
+  document.getElementById('sendBtn').textContent = 'บันทึกออเดอร์';
+  const bar = document.createElement('div');
+  bar.className = 'adminbar';
+  bar.textContent = '🧑‍🍳 โหมดร้าน · คีย์แทนลูกค้า · ออเดอร์จะไม่ผูก LINE ของลูกค้า (อัปเดตสถานะชำระเงินได้ในหน้า Admin)';
+  document.querySelector('.wrap').insertBefore(bar, document.querySelector('.wrap').firstChild);
+  renderRounds(); renderMenu(); renderCart(); loadDiyConfig();
+}
+
 async function initLiff(){
+  if (ADMIN_MODE) { initAdminMode(); return; }
   try {
     await liff.init({ liffId: LIFF_ID });
     if (liff.isLoggedIn()) {
@@ -1250,6 +1346,7 @@ async function initLiff(){
     renderMenu();
     renderCart();
     prefillMemberInfo();
+    loadDiyConfig();
   }
 }
 
