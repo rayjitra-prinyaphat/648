@@ -1,0 +1,152 @@
+<!doctype html>
+<html lang="th">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>648 · สติ๊กเกอร์ส่งลูกค้า 80 × 50 mm</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@600;700;800&display=swap" rel="stylesheet">
+<style>
+.ds{width:80mm;height:50mm;box-sizing:border-box;padding:2.6mm 3mm 2.4mm;background:#fff;color:#0f172a;font-family:Sarabun,Tahoma,sans-serif;display:flex;flex-direction:column;overflow:hidden;}
+.ds *{box-sizing:border-box;}
+.ds-top{display:flex;justify-content:space-between;align-items:baseline;font-size:2.3mm;font-weight:800;letter-spacing:.02em;color:#6b4226;}
+.ds-top span:last-child{color:#475569;font-weight:700;letter-spacing:0;}
+.ds-main{display:flex;justify-content:space-between;align-items:flex-start;gap:2mm;margin-top:1mm;}
+.ds-name{font-size:4.6mm;font-weight:800;line-height:1.1;max-height:10.2mm;overflow:hidden;}
+.ds-loc{font-size:2.7mm;font-weight:700;line-height:1.25;margin-top:.8mm;max-height:6.8mm;overflow:hidden;}
+.ds-loc b{font-weight:800;}
+.ds-price{text-align:right;flex-shrink:0;}
+.ds-price small{display:block;font-size:2.2mm;font-weight:700;color:#475569;}
+.ds-price div{font-size:6mm;font-weight:800;line-height:1;letter-spacing:-.02em;}
+.ds-dates{margin-top:auto;border:.35mm dashed #0f172a;border-radius:2mm;padding:1.3mm 2mm 1.4mm;}
+.ds-h{font-size:2.5mm;font-weight:800;}
+.ds-h span{font-size:2mm;}
+.ds-mfg{display:flex;align-items:baseline;gap:1.5mm;font-size:2.2mm;font-weight:600;margin-top:.4mm;}
+.ds-mfg b{font-size:3.4mm;font-weight:800;}
+.ds-bb{font-size:2.1mm;font-weight:600;margin-top:.3mm;}
+.ds-cols{display:grid;grid-template-columns:repeat(3,1fr);text-align:center;margin-top:.3mm;}
+.ds-cols small{display:block;font-size:2mm;font-weight:600;}
+.ds-cols b{display:block;font-size:2.9mm;font-weight:800;white-space:nowrap;}
+body{margin:0;background:#f1f5f9;font-family:Sarabun,Tahoma,sans-serif;color:#0f172a;}
+.wrap{max-width:520px;margin:0 auto;padding:16px;}
+h1{font-size:18px;margin:0 0 4px;color:#6b4226;}
+.hint{font-size:12px;color:#64748b;font-weight:700;margin:0 0 12px;}
+.card{background:#fff;border:1px solid #e2e8f0;border-radius:16px;padding:14px;margin-bottom:12px;}
+label{display:block;font-size:12px;font-weight:800;color:#64748b;margin:8px 0 3px;}
+input,textarea{width:100%;box-sizing:border-box;border:1px solid #cbd5e1;border-radius:10px;padding:10px;font:700 16px Sarabun,Tahoma,sans-serif;}
+.row{display:grid;grid-template-columns:1fr 1fr;gap:8px;}
+.preview{display:flex;justify-content:center;background:#e2e8f0;border-radius:12px;padding:14px;}
+.preview .ds{box-shadow:0 2px 10px rgba(0,0,0,.15);}
+.btns{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-top:10px;}
+button{border:none;border-radius:12px;padding:12px 6px;font:800 15px Sarabun,Tahoma,sans-serif;cursor:pointer;}
+.b1{background:#0f172a;color:#fff}.b2{background:#059669;color:#fff}.b3{background:#e2e8f0;color:#0f172a}
+@media print{
+  @page{size:80mm 50mm;margin:0;}
+  html,body{background:#fff !important;margin:0;padding:0;width:80mm;height:50mm;overflow:hidden;}
+  body *{visibility:hidden !important;}
+  #dropSlip,#dropSlip *{visibility:visible !important;}
+  #dropSlip{position:fixed !important;left:0;top:0;box-shadow:none !important;}
+}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>🖨️ สติ๊กเกอร์ส่งลูกค้า 80 × 50 mm</h1>
+  <p class="hint">กรอกข้อมูลจากออเดอร์ › ตรวจตัวอย่าง › PRINT (Scale 100% · Margins None) หรือ SAVE PNG</p>
+
+  <div class="card">
+    <label>ชื่อลูกค้า</label>
+    <input id="name" placeholder="เช่น RAY sunshine">
+    <div class="row">
+      <div><label>ยอดรวม (บาท)</label><input id="total" type="number" inputmode="decimal" placeholder="489"></div>
+      <div><label>เลขออเดอร์ (ไม่บังคับ)</label><input id="orderId" placeholder="ORD..."></div>
+    </div>
+    <label>จุดนัดรับ (Drop off)</label>
+    <textarea id="loc" rows="2" placeholder="เช่น SCB Academy 18th FL."></textarea>
+    <label>วันผลิต (MFG Date)</label>
+    <input id="mfg" type="date">
+    <button class="b3" style="width:100%;margin-top:10px" onclick="clearForm()">ล้างข้อมูล (ใบถัดไป)</button>
+  </div>
+
+  <div class="card printzone">
+    <p class="hint">ตัวอย่างขนาดจริง</p>
+    <div class="preview" id="preview"></div>
+    <div class="btns">
+      <button class="b1" onclick="window.print()">PRINT</button>
+      <button class="b2" onclick="savePng()">SAVE PNG</button>
+      <button class="b3" onclick="clearForm()">ใบถัดไป</button>
+    </div>
+  </div>
+</div>
+
+<script>
+'use strict';
+function esc(x){ return String(x == null ? '' : x).replace(/[&<>"']/g, function(c){ return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]; }); }
+function money(n){ return Math.round(Number(n || 0)).toLocaleString('th-TH') + '฿'; }
+function parseBakeDate_(v) {
+  const t = String(v || '').trim();
+  let m = t.match(/^(\d{4})-(\d{2})-(\d{2})/);
+  if (m) return new Date(Number(m[1]), Number(m[2]) - 1, Number(m[3]));
+  m = t.match(/^(\d{2})\/(\d{2})\/(\d{4})/);
+  if (m) return new Date(Number(m[3]), Number(m[2]) - 1, Number(m[1]));
+  const d = new Date(); d.setHours(0, 0, 0, 0); return d;
+}
+function pipeDate_(d) {
+  return String(d.getDate()).padStart(2, '0') + ' | ' + String(d.getMonth() + 1).padStart(2, '0') + ' | ' + d.getFullYear();
+}
+function plusDays_(d, n) { const x = new Date(d); x.setDate(x.getDate() + n); return x; }
+
+function dropSlipHtml_(data) {
+  const mfg = parseBakeDate_(data.bakeDate);
+  return '<div class="ds" id="dropSlip">' +
+    '<div class="ds-top"><span>648 SOURDOUGH LAB</span><span>' + esc(data.orderId || '') + '</span></div>' +
+    '<div class="ds-main">' +
+      '<div style="min-width:0;">' +
+        '<div class="ds-name">' + esc(data.customerName || '-') + '</div>' +
+        '<div class="ds-loc">📍 <b>จุดรับ:</b> ' + esc(data.pickupLocation || '-') + '</div>' +
+      '</div>' +
+      '<div class="ds-price"><small>ยอดรวม (TOTAL)</small><div>' + money(data.totalAmount || 0) + '</div></div>' +
+    '</div>' +
+    '<div class="ds-dates">' +
+      '<div class="ds-h">วันผลิตและวันหมดอายุ <span>(PRODUCT DATES)</span></div>' +
+      '<div class="ds-mfg">วันที่ผลิต (MFG Date): <b>' + pipeDate_(mfg) + '</b></div>' +
+      '<div class="ds-bb">ควรบริโภคก่อน (Best Before)</div>' +
+      '<div class="ds-cols">' +
+        '<div><small>เก็บนอกตู้เย็น</small><b>' + pipeDate_(plusDays_(mfg, 4)) + '</b></div>' +
+        '<div><small>เก็บในตู้เย็น</small><b>' + pipeDate_(plusDays_(mfg, 7)) + '</b></div>' +
+        '<div><small>เก็บในช่องแช่แข็ง</small><b>' + pipeDate_(plusDays_(mfg, 90)) + '</b></div>' +
+      '</div>' +
+    '</div>' +
+  '</div>';
+}
+
+
+function ymd(d){ return d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0') + '-' + String(d.getDate()).padStart(2,'0'); }
+const F = ['name','total','orderId','loc','mfg'];
+function $(id){ return document.getElementById(id); }
+function data(){
+  return { customerName: $('name').value.trim() || '-', totalAmount: $('total').value, orderId: $('orderId').value.trim(),
+           pickupLocation: $('loc').value.trim() || '-', bakeDate: $('mfg').value };
+}
+function render(){ document.getElementById('preview').innerHTML = dropSlipHtml_(data()); }
+async function savePng(){
+  const c = await html2canvas(document.getElementById('dropSlip'), { scale: 6, backgroundColor: '#fff' });
+  const a = document.createElement('a');
+  a.download = '648_sticker_80x50_' + ($('orderId').value.trim() || $('name').value.trim() || 'order') + '.png';
+  a.href = c.toDataURL('image/png'); a.click();
+}
+function clearForm(){ ['name','total','orderId','loc'].forEach(function(id){ document.getElementById(id).value = ''; }); render(); $('name').focus(); }
+
+// เติมค่าจากลิงก์ได้: sticker.html?name=...&total=...&loc=...&date=yyyy-mm-dd&order=...
+(function init(){
+  const q = new URLSearchParams(location.search);
+  $('name').value = q.get('name') || ''; $('total').value = q.get('total') || ''; $('loc').value = q.get('loc') || '';
+  $('orderId').value = q.get('order') || ''; $('mfg').value = q.get('date') || ymd(new Date());
+  F.forEach(function(id){ document.getElementById(id).addEventListener('input', render); });
+  render();
+})();
+</script>
+</body>
+</html>
