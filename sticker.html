@@ -9,26 +9,26 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@600;700;800&display=swap" rel="stylesheet">
 <style>
-.ds{width:80mm;height:50mm;box-sizing:border-box;padding:2.6mm 3mm 2.4mm;background:#fff;color:#0f172a;font-family:Sarabun,Tahoma,sans-serif;display:flex;flex-direction:column;overflow:hidden;}
+.ds{width:80mm;height:50mm;box-sizing:border-box;padding:2.4mm 3mm 2.2mm;background:#fff;color:#000;font-family:Sarabun,Tahoma,sans-serif;display:flex;flex-direction:column;overflow:hidden;-webkit-print-color-adjust:exact;print-color-adjust:exact;}
 .ds *{box-sizing:border-box;}
-.ds-top{display:flex;justify-content:space-between;align-items:baseline;font-size:2.3mm;font-weight:800;letter-spacing:.02em;color:#6b4226;}
-.ds-top span:last-child{color:#475569;font-weight:700;letter-spacing:0;}
-.ds-main{display:flex;justify-content:space-between;align-items:flex-start;gap:2mm;margin-top:1mm;}
-.ds-name{font-size:4.6mm;font-weight:800;line-height:1.1;max-height:10.2mm;overflow:hidden;}
-.ds-loc{font-size:2.7mm;font-weight:700;line-height:1.25;margin-top:.8mm;max-height:6.8mm;overflow:hidden;}
-.ds-loc b{font-weight:800;}
+.ds-top{display:flex;justify-content:space-between;align-items:baseline;font-size:2.6mm;font-weight:800;line-height:1.4;color:#000;}
+.ds-top span:last-child{font-weight:700;}
+.ds-main{display:flex;justify-content:space-between;align-items:flex-start;gap:2mm;margin-top:.8mm;}
+/* line-height สูงพอสำหรับสระ/วรรณยุกต์ไทย + padding กันตัดหัว-ท้ายตัวอักษร */
+.ds-name{font-size:5mm;font-weight:800;line-height:1.45;padding:.5mm 0 .3mm;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.ds-loc{font-size:3mm;font-weight:800;line-height:1.45;padding:.3mm 0;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;}
 .ds-price{text-align:right;flex-shrink:0;}
-.ds-price small{display:block;font-size:2.2mm;font-weight:700;color:#475569;}
-.ds-price div{font-size:6mm;font-weight:800;line-height:1;letter-spacing:-.02em;}
-.ds-dates{margin-top:auto;border:.35mm dashed #0f172a;border-radius:2mm;padding:1.3mm 2mm 1.4mm;}
-.ds-h{font-size:2.5mm;font-weight:800;}
-.ds-h span{font-size:2mm;}
-.ds-mfg{display:flex;align-items:baseline;gap:1.5mm;font-size:2.2mm;font-weight:600;margin-top:.4mm;}
-.ds-mfg b{font-size:3.4mm;font-weight:800;}
-.ds-bb{font-size:2.1mm;font-weight:600;margin-top:.3mm;}
-.ds-cols{display:grid;grid-template-columns:repeat(3,1fr);text-align:center;margin-top:.3mm;}
-.ds-cols small{display:block;font-size:2mm;font-weight:600;}
-.ds-cols b{display:block;font-size:2.9mm;font-weight:800;white-space:nowrap;}
+.ds-price small{display:block;font-size:2.5mm;font-weight:800;line-height:1.4;color:#000;}
+.ds-price div{font-size:6.4mm;font-weight:800;line-height:1.3;letter-spacing:-.02em;}
+.ds-dates{margin-top:auto;border:.4mm solid #000;border-radius:2mm;padding:1.2mm 2mm 1.2mm;}
+.ds-h{font-size:2.8mm;font-weight:800;line-height:1.4;}
+.ds-h span{font-size:2.3mm;}
+.ds-mfg{display:flex;align-items:baseline;gap:1.5mm;font-size:2.5mm;font-weight:700;line-height:1.4;}
+.ds-mfg b{font-size:3.6mm;font-weight:800;line-height:1.3;}
+.ds-bb{font-size:2.5mm;font-weight:700;line-height:1.4;}
+.ds-cols{display:grid;grid-template-columns:repeat(3,1fr);text-align:center;}
+.ds-cols small{display:block;font-size:2.4mm;font-weight:700;line-height:1.45;}
+.ds-cols b{display:block;font-size:2.9mm;font-weight:800;line-height:1.3;white-space:nowrap;}
 body{margin:0;background:#f1f5f9;font-family:Sarabun,Tahoma,sans-serif;color:#0f172a;}
 .wrap{max-width:520px;margin:0 auto;padding:16px;}
 h1{font-size:18px;margin:0 0 4px;color:#6b4226;}
@@ -132,6 +132,7 @@ function data(){
 }
 function render(){ document.getElementById('preview').innerHTML = dropSlipHtml_(data()); }
 async function savePng(){
+  try{ await document.fonts.ready; }catch(e){}
   const c = await html2canvas(document.getElementById('dropSlip'), { scale: 6, backgroundColor: '#fff' });
   const a = document.createElement('a');
   a.download = '648_sticker_80x50_' + ($('orderId').value.trim() || $('name').value.trim() || 'order') + '.png';
