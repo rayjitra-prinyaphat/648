@@ -1,1356 +1,153 @@
 <!doctype html>
 <html lang="th">
 <head>
-  <meta charset="utf-8">
-  <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-  <title>648 Sourdough LAB CLUB · สั่งซื้อ</title>
-
-  <script charset="utf-8" src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
-  <script src="https://cdn.tailwindcss.com"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
-
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@400;600;700;800&display=swap" rel="stylesheet">
-
-  <style>
-    * { font-family: 'Sarabun', sans-serif !important; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
-    html, body { margin: 0; width: 100%; min-height: 100%; background: #f8fafc; color: #0f172a; }
-    body { padding: env(safe-area-inset-top) 0 calc(96px + env(safe-area-inset-bottom)); }
-    body.diy-open { padding-bottom: calc(170px + env(safe-area-inset-bottom)); }
-    input, select, textarea, button { font-size: 16px !important; }
-
-    :root { --brown: #6b4226; --brown-soft: #fdf6ee; --tan: #d4a373; --green: #059669; }
-
-    .header { background: var(--brown); color: #fff; padding: 12px 18px; display: flex; justify-content: space-between; align-items: center; }
-    .tabs { position: sticky; top: 0; z-index: 15; background: #fff; border-bottom: 1px solid #e2e8f0; }
-    .tabs .inner { max-width: 480px; margin: 0 auto; display: grid; grid-template-columns: 1fr 1fr; gap: 6px; padding: 8px 12px; }
-    .tab { border: none; border-radius: 12px; padding: 10px 6px; font-weight: 800; color: #64748b; background: #f1f5f9; }
-    .tab.on { background: var(--brown); color: #fff; }
-    .tab small { display: block; font-size: 11px; font-weight: 700; opacity: .8; }
-
-    .wrap { max-width: 480px; margin: 0 auto; padding: 12px; }
-    .card { background: #fff; border: 1px solid #e2e8f0; border-radius: 16px; box-shadow: 0 2px 12px rgba(15,23,42,.04); }
-    .muted { color: #64748b; }
-    .num { font-weight: 800; letter-spacing: -.03em; }
-    .sec-title { font-weight: 800; color: var(--brown); margin: 14px 2px 8px; font-size: 15px; }
-
-    .view { display: none; } .view.active { display: block; }
-
-    /* เมนูแนะนำ */
-    .flavor { display: flex; gap: 12px; padding: 12px; }
-    .img-wrap { width: 76px; height: 76px; border-radius: 12px; overflow: hidden; flex-shrink: 0; background: #f1f5f9; display: flex; align-items: center; justify-content: center; font-size: 28px; }
-    .img-wrap img { width: 100%; height: 100%; object-fit: cover; display: block; }
-    .size-row { display: flex; align-items: center; justify-content: space-between; gap: 8px; padding: 6px 0; border-top: 1px dashed #e2e8f0; }
-    .size-row:first-of-type { border-top: none; }
-    .size-label { font-size: 14px; font-weight: 700; }
-    .size-label small { display: block; font-size: 11px; color: #64748b; font-weight: 700; }
-    .qty { display: flex; align-items: center; gap: 6px; }
-    .qtybtn { width: 32px; height: 32px; border-radius: 9px; border: 1px solid #cbd5e1; background: #fff; font-weight: 900; font-size: 18px !important; display: flex; align-items: center; justify-content: center; }
-    .addbtn { background: var(--brown); color: #fff; border: none; border-radius: 10px; padding: 7px 14px; font-weight: 800; font-size: 14px !important; }
-    .customize { background: none; border: none; color: var(--brown); font-weight: 800; font-size: 13px !important; padding: 4px 0 0; text-decoration: underline; }
-
-    /* DIY */
-    .step { padding: 14px; margin-bottom: 10px; }
-    .step-h { display: flex; align-items: center; gap: 8px; font-weight: 800; margin-bottom: 4px; }
-    .step-n { width: 24px; height: 24px; border-radius: 50%; background: var(--brown); color: #fff; font-size: 13px; display: inline-flex; align-items: center; justify-content: center; flex-shrink: 0; }
-    .step-hint { font-size: 12px; color: #64748b; font-weight: 700; margin: 0 0 8px 32px; }
-    .tier-label { font-size: 12px; font-weight: 800; color: #64748b; margin: 10px 0 6px; }
-    .row { display: flex; flex-wrap: wrap; gap: 6px; }
-    .chip { border: 1.5px solid #e2e8f0; background: #fff; border-radius: 12px; padding: 7px 11px; font-weight: 700; font-size: 14px !important; line-height: 1.2; text-align: left; color: #0f172a; }
-    .chip small { display: block; font-size: 11px; font-weight: 700; color: #64748b; }
-    .chip.on { background: var(--brown); border-color: var(--brown); color: #fff; }
-    .chip.on small { color: #f5d9bd; }
-    .chip:disabled { opacity: .35; }
-    .match { background: #ecfdf5; border: 1px solid #86efac; color: #166534; border-radius: 12px; padding: 8px 12px; font-size: 13px; font-weight: 800; margin-bottom: 10px; }
-
-    .diybar { position: fixed; left: 0; right: 0; bottom: calc(74px + env(safe-area-inset-bottom)); z-index: 19; display: none; padding: 0 12px; }
-    body.diy-open .diybar { display: block; }
-    .diybar .inner { max-width: 480px; margin: 0 auto; background: var(--brown); color: #fff; border-radius: 16px; padding: 10px 12px; display: flex; align-items: center; gap: 10px; box-shadow: 0 6px 20px rgba(107,66,38,.35); }
-    .diybar .add { background: #fff; color: var(--brown); border: none; border-radius: 12px; padding: 10px 14px; font-weight: 900; white-space: nowrap; }
-    .diybar .add:disabled { opacity: .5; }
-
-    /* แถบล่าง + ตะกร้า */
-    .cartbar { position: fixed; left: 0; right: 0; bottom: 0; background: #fff; border-top: 1px solid #e2e8f0; padding: 10px 14px calc(10px + env(safe-area-inset-bottom)); z-index: 20; }
-    .cartbar .inner { max-width: 480px; margin: 0 auto; display: flex; align-items: center; gap: 10px; }
-    .cartbtn { flex: 1; background: var(--green); color: #fff; border: none; border-radius: 14px; padding: 13px; font-weight: 800; font-size: 17px !important; }
-    .cartbtn:disabled { opacity: .45; }
-
-    .sheet-bg { position: fixed; inset: 0; background: rgba(15,23,42,.55); z-index: 40; display: none; }
-    .sheet-bg.show { display: block; }
-    .sheet { position: fixed; left: 0; right: 0; bottom: 0; z-index: 41; max-height: 92vh; overflow: auto; background: #fff; border-radius: 22px 22px 0 0; transform: translateY(105%); transition: transform .25s; padding-bottom: env(safe-area-inset-bottom); }
-    .sheet.show { transform: translateY(0); }
-    .sheet .inner { max-width: 480px; margin: 0 auto; padding: 14px 16px 20px; }
-    .grab { width: 44px; height: 5px; border-radius: 9px; background: #cbd5e1; margin: 0 auto 10px; }
-    .line { display: flex; justify-content: space-between; align-items: center; gap: 10px; padding: 10px 0; border-bottom: 1px solid #f1f5f9; }
-    .field { border: 1px solid #cbd5e1; border-radius: 12px; padding: 11px 12px; font-weight: 700; width: 100%; }
-    .field.err { border-color: #dc2626; background: #fff1f2; }
-    .sendbtn { width: 100%; background: var(--green); color: #fff; border: none; border-radius: 14px; padding: 14px; font-weight: 900; font-size: 17px !important; }
-    .sendbtn:disabled { opacity: .5; }
-
-    .promobar { background: #fff7ed; border: 1px solid #fdba74; border-radius: 12px; padding: 8px 12px; font-size: 13px; font-weight: 700; color: #9a3412; text-align: center; }
-    .promobar.done { background: #f0fdf4; border-color: #86efac; color: #166534; }
-    .promobar-track { height: 6px; background: #fed7aa; border-radius: 999px; margin-top: 6px; overflow: hidden; }
-    .promobar-fill { height: 100%; background: #f97316; border-radius: 999px; transition: width .25s; }
-    .promobar.done .promobar-fill { background: #22c55e; }
-
-    .modal { position: fixed; inset: 0; background: rgba(15,23,42,.6); z-index: 50; display: none; align-items: center; justify-content: center; padding: 14px; }
-    .modal.show { display: flex; }
-    .summary { width: min(94vw, 440px); max-height: 88vh; overflow: auto; background: #fff; border-radius: 20px; padding: 20px; }
-    .promocard { width: min(90vw, 380px); background: #fff; border-radius: 20px; padding: 24px; text-align: center; }
-
-    .spin { display: inline-block; width: 20px; height: 20px; border: 3px solid #e2e8f0; border-top-color: var(--brown); border-radius: 50%; animation: spin .7s linear infinite; }
-    @keyframes spin { to { transform: rotate(360deg); } }
-
-    .roundbanner { background: #fff7ed; border: 1px solid #fdba74; color: #7c2d12; border-radius: 14px; padding: 9px 12px; margin-bottom: 4px; font-size: 13px; line-height: 1.5; }
-    .roundbanner span { color: #9a3412; font-weight: 700; }
-    body.admin-mode .header { background: #0f172a; }
-    .adminbar { background: #0f172a; color: #fff; border-radius: 14px; padding: 9px 12px; margin-bottom: 10px; font-size: 13px; font-weight: 700; }
-    .memberbar { background: #dcfce7; border: 1px solid #86efac; border-radius: 14px; padding: 9px 12px; margin-bottom: 10px; font-weight: 700; font-size: 14px; display: flex; align-items: center; gap: 8px; }
-    .signup-input { border: 1px solid #cbd5e1; border-radius: 12px; padding: 12px; font-weight: 700; width: 100%; margin-top: 10px; text-align: center; }
-    .skiplink { color: #64748b; font-weight: 700; font-size: 13px; text-decoration: underline; background: none; border: none; padding: 10px; }
-
-    .liff-loading { position: fixed; inset: 0; background: #f8fafc; z-index: 100; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 12px; }
-    .liff-loading.hide { display: none; }
-
-    .toast { position: fixed; left: 50%; bottom: calc(160px + env(safe-area-inset-bottom)); transform: translateX(-50%); background: #0f172a; color: #fff; padding: 10px 16px; border-radius: 999px; font-weight: 800; font-size: 14px; z-index: 60; display: none; white-space: nowrap; }
-    @media (prefers-reduced-motion: reduce) { .sheet { transition: none; } }
-  </style>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>648 · สติ๊กเกอร์ส่งลูกค้า 80 × 50 mm</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@600;700;800&display=swap" rel="stylesheet">
+<style>
+.ds{width:80mm;height:50mm;box-sizing:border-box;padding:2.4mm 3mm 2.2mm;background:#fff;color:#000;font-family:Sarabun,Tahoma,sans-serif;display:flex;flex-direction:column;overflow:hidden;-webkit-print-color-adjust:exact;print-color-adjust:exact;}
+.ds *{box-sizing:border-box;}
+.ds-top{display:flex;justify-content:space-between;align-items:baseline;font-size:2.6mm;font-weight:800;line-height:1.4;color:#000;}
+.ds-top span:last-child{font-weight:700;}
+.ds-main{display:flex;justify-content:space-between;align-items:flex-start;gap:2mm;margin-top:.8mm;}
+/* line-height สูงพอสำหรับสระ/วรรณยุกต์ไทย + padding กันตัดหัว-ท้ายตัวอักษร */
+.ds-name{font-size:5mm;font-weight:800;line-height:1.45;padding:.5mm 0 .3mm;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.ds-loc{font-size:3mm;font-weight:800;line-height:1.45;padding:.3mm 0;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;}
+.ds-price{text-align:right;flex-shrink:0;}
+.ds-price small{display:block;font-size:2.5mm;font-weight:800;line-height:1.4;color:#000;}
+.ds-price div{font-size:6.4mm;font-weight:800;line-height:1.3;letter-spacing:-.02em;}
+.ds-dates{margin-top:auto;border:.4mm solid #000;border-radius:2mm;padding:1.2mm 2mm 1.2mm;}
+.ds-h{font-size:2.8mm;font-weight:800;line-height:1.4;}
+.ds-h span{font-size:2.3mm;}
+.ds-mfg{display:flex;align-items:baseline;gap:1.5mm;font-size:2.5mm;font-weight:700;line-height:1.4;}
+.ds-mfg b{font-size:3.6mm;font-weight:800;line-height:1.3;}
+.ds-bb{font-size:2.5mm;font-weight:700;line-height:1.4;}
+.ds-cols{display:grid;grid-template-columns:repeat(3,1fr);text-align:center;}
+.ds-cols small{display:block;font-size:2.4mm;font-weight:700;line-height:1.45;}
+.ds-cols b{display:block;font-size:2.9mm;font-weight:800;line-height:1.3;white-space:nowrap;}
+body{margin:0;background:#f1f5f9;font-family:Sarabun,Tahoma,sans-serif;color:#0f172a;}
+.wrap{max-width:520px;margin:0 auto;padding:16px;}
+h1{font-size:18px;margin:0 0 4px;color:#6b4226;}
+.hint{font-size:12px;color:#64748b;font-weight:700;margin:0 0 12px;}
+.card{background:#fff;border:1px solid #e2e8f0;border-radius:16px;padding:14px;margin-bottom:12px;}
+label{display:block;font-size:12px;font-weight:800;color:#64748b;margin:8px 0 3px;}
+input,textarea{width:100%;box-sizing:border-box;border:1px solid #cbd5e1;border-radius:10px;padding:10px;font:700 16px Sarabun,Tahoma,sans-serif;}
+.row{display:grid;grid-template-columns:1fr 1fr;gap:8px;}
+.preview{display:flex;justify-content:center;background:#e2e8f0;border-radius:12px;padding:14px;}
+.preview .ds{box-shadow:0 2px 10px rgba(0,0,0,.15);}
+.btns{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-top:10px;}
+button{border:none;border-radius:12px;padding:12px 6px;font:800 15px Sarabun,Tahoma,sans-serif;cursor:pointer;}
+.b1{background:#0f172a;color:#fff}.b2{background:#059669;color:#fff}.b3{background:#e2e8f0;color:#0f172a}
+@media print{
+  @page{size:80mm 50mm;margin:0;}
+  html,body{background:#fff !important;margin:0;padding:0;width:80mm;height:50mm;overflow:hidden;}
+  body *{visibility:hidden !important;}
+  #dropSlip,#dropSlip *{visibility:visible !important;}
+  #dropSlip{position:fixed !important;left:0;top:0;box-shadow:none !important;}
+}
+</style>
 </head>
-
 <body>
+<div class="wrap">
+  <h1>🖨️ สติ๊กเกอร์ส่งลูกค้า 80 × 50 mm</h1>
+  <p class="hint">กรอกข้อมูลจากออเดอร์ › ตรวจตัวอย่าง › PRINT (Scale 100% · Margins None) หรือ SAVE PNG</p>
 
-  <div id="liffLoading" class="liff-loading">
-    <span class="spin" style="width:36px;height:36px;border-width:4px;"></span>
-    <div class="font-bold" style="color:#6b4226;">กำลังโหลด...</div>
+  <div class="card">
+    <label>ชื่อลูกค้า</label>
+    <input id="name" placeholder="เช่น RAY sunshine">
+    <div class="row">
+      <div><label>ยอดรวม (บาท)</label><input id="total" type="number" inputmode="decimal" placeholder="489"></div>
+      <div><label>เลขออเดอร์ (ไม่บังคับ)</label><input id="orderId" placeholder="ORD..."></div>
+    </div>
+    <label>จุดนัดรับ (Drop off)</label>
+    <textarea id="loc" rows="2" placeholder="เช่น SCB Academy 18th FL."></textarea>
+    <label>วันผลิต (MFG Date)</label>
+    <input id="mfg" type="date">
+    <button class="b3" style="width:100%;margin-top:10px" onclick="clearForm()">ล้างข้อมูล (ใบถัดไป)</button>
   </div>
 
-  <header class="header">
-    <div>
-      <div style="font-size:12px; color:#d4a373;">648 Sourdough LAB CLUB</div>
-      <div style="font-weight:800; font-size:18px; line-height:1.1;">สั่งซื้อ</div>
-    </div>
-    <div class="text-right" style="font-size:12px; color:#f5d9bd; font-weight:700;" id="roundInfo"></div>
-  </header>
-
-  <nav class="tabs">
-    <div class="inner">
-      <button class="tab on" id="tab-menu" onclick="showTab('menu')">🔥 เมนูแนะนำ<small>เลือกสูตรยอดนิยม</small></button>
-      <button class="tab" id="tab-diy" onclick="showTab('diy')">🧪 จัดก้อนเอง<small>เลือกส่วนผสมเอง</small></button>
-    </div>
-  </nav>
-
-  <div class="wrap">
-    <div id="memberBar" class="memberbar" style="display:none;">✅ <span id="memberBarText">เชื่อมสมาชิกแล้ว</span></div>
-    <div id="roundBanner" class="roundbanner"></div>
-
-    <!-- ===== แท็บ เมนูแนะนำ ===== -->
-    <section id="view-menu" class="view active">
-      <div class="sec-title">🍞 Sourdough</div>
-      <div id="flavorList" class="space-y-2"></div>
-
-      <div class="sec-title">🥣 ซุป · เซ็ต · พิซซ่า</div>
-      <div id="otherList" class="space-y-2"></div>
-    </section>
-
-    <!-- ===== แท็บ จัดก้อนเอง ===== -->
-    <section id="view-diy" class="view">
-      <div class="card p-3 mb-3" style="background:var(--brown-soft);">
-        <div class="font-bold" style="color:#6b4226;">จัดก้อน Sourdough ในแบบของคุณ (Full Loaf)</div>
-        <div class="text-xs muted font-bold mt-1">เลือกทีละขั้น ร้านคำนวณปริมาณให้พอดีกับก้อน · หั่นเป็นแผ่นให้ทุกก้อน</div>
-      </div>
-
-      <div id="diyMatch" class="match" style="display:none;"></div>
-
-      <div class="card step">
-        <div class="step-h"><span class="step-n">1</span>เพิ่มรสชาติ</div>
-        <p class="step-hint">ผสมในเนื้อแป้ง · เลือกได้ 1 รส</p>
-        <div id="diyTaste" class="row"></div>
-      </div>
-      <div class="card step">
-        <div class="step-h"><span class="step-n">2</span>เพิ่มซอส</div>
-        <p class="step-hint">ปาดเป็นเกลียวในเนื้อขนมปัง · เลือกได้ 1 อย่าง</p>
-        <div id="diySauce" class="row"></div>
-      </div>
-      <div class="card step">
-        <div class="step-h"><span class="step-n">3</span>ท็อปปิ้ง</div>
-        <p class="step-hint" id="diyTopHint">เลือกได้สูงสุด 3 อย่าง</p>
-        <div id="diyTops"></div>
-      </div>
-      <div class="card step">
-        <div class="step-h"><span class="step-n">4</span>ความหนาของแผ่น</div>
-        <p class="step-hint">เลือกตามวิธีที่จะกิน</p>
-        <div id="diySlice" class="row"></div>
-      </div>
-
-      <div class="card step" id="diyDetail"></div>
-      <button class="customize" style="display:block;margin:4px auto 0;" onclick="diyReset()">เริ่มจัดใหม่</button>
-    </section>
-  </div>
-
-  <!-- แถบราคา DIY (แสดงเฉพาะแท็บจัดก้อนเอง) -->
-  <div class="diybar">
-    <div class="inner">
-      <div style="flex:1; min-width:0;">
-        <div id="diyBarName" class="text-xs font-bold" style="color:#f5d9bd; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">ก้อนของคุณ</div>
-        <div id="diyBarPrice" class="num text-2xl">200฿</div>
-      </div>
-      <button class="add" id="diyAddBtn" onclick="diyAddToCart()">＋ ใส่ตะกร้า</button>
+  <div class="card printzone">
+    <p class="hint">ตัวอย่างขนาดจริง</p>
+    <div class="preview" id="preview"></div>
+    <div class="btns">
+      <button class="b1" onclick="window.print()">PRINT</button>
+      <button class="b2" onclick="savePng()">SAVE PNG</button>
+      <button class="b3" onclick="clearForm()">ใบถัดไป</button>
     </div>
   </div>
-
-  <!-- แถบตะกร้าด้านล่าง -->
-  <div class="cartbar">
-    <div class="inner">
-      <div>
-        <div class="text-xs muted font-bold">รวม</div>
-        <div id="cartTotal" class="num text-2xl" style="color:#6b4226;">0฿</div>
-      </div>
-      <button class="cartbtn" id="cartBtn" onclick="openCart()" disabled>🛒 ดูตะกร้า (<span id="cartCount">0</span>)</button>
-    </div>
-  </div>
-
-  <!-- ตะกร้า + ข้อมูลผู้สั่ง -->
-  <div id="sheetBg" class="sheet-bg" onclick="closeCart()"></div>
-  <div id="cartSheet" class="sheet" role="dialog" aria-label="ตะกร้าสินค้า">
-    <div class="inner">
-      <div class="grab"></div>
-      <div class="flex justify-between items-center mb-1">
-        <div class="font-black text-lg" style="color:#6b4226;">🛒 ตะกร้าของคุณ</div>
-        <button class="skiplink" style="padding:4px;" onclick="closeCart()">ปิด</button>
-      </div>
-
-      <div id="cartLines"></div>
-
-      <div class="flex justify-between items-end mt-3">
-        <span class="font-bold">ยอดรวม</span>
-        <span id="sheetTotal" class="num text-3xl" style="color:#6b4226;">0฿</span>
-      </div>
-      <div id="promoBar" class="promobar mt-2" style="display:none;">
-        <span id="promoBarText"></span>
-        <div class="promobar-track"><div id="promoBarFill" class="promobar-fill" style="width:0%;"></div></div>
-      </div>
-
-      <div class="font-bold mt-4 mb-2" style="color:#6b4226;">ข้อมูลผู้สั่ง</div>
-      <div class="space-y-2">
-        <input id="custName" class="field" placeholder="ชื่อ-นามสกุล *">
-        <input id="custPhone" type="tel" inputmode="numeric" class="field" placeholder="เบอร์โทร *">
-        <input id="custLine" class="field" placeholder="LINE / หมายเหตุ (ถ้ามี)">
-        <div>
-          <label class="text-xs font-bold muted">จุดนัดรับสินค้า *</label>
-          <textarea id="pickLocation" rows="2" class="field mt-1" placeholder="เช่น ชั้น 12 ตึก A บริษัท XXX / โต๊ะทำงานแผนกบัญชี"></textarea>
-        </div>
-        <div>
-          <label class="text-xs font-bold muted">วันรับ *</label>
-          <select id="pickDate" class="field mt-1"></select>
-          <div id="customDateWrap" style="display:none;" class="mt-1">
-            <label class="text-xs font-bold muted">หรือเลือกวันอื่น (โหมดร้าน)</label>
-            <input id="pickDateCustom" type="date" class="field mt-1">
-          </div>
-          <div id="roundHint" class="text-xs font-bold mt-1" style="color:#9a3412;"></div>
-        </div>
-      </div>
-
-      <button class="sendbtn mt-4" id="sendBtn" onclick="submitOrder()">ส่งออเดอร์</button>
-    </div>
-  </div>
-
-  <div id="summaryModal" class="modal">
-    <div>
-      <div id="summaryCard" class="summary">
-        <div class="text-center">
-          <div class="text-2xl">✅</div>
-          <div class="font-black text-xl" style="color:#6b4226;">รับออเดอร์แล้ว!</div>
-          <div class="muted text-sm font-bold mt-1">กรุณาแคปหน้าจอนี้ส่งให้ร้านเพื่อยืนยัน</div>
-        </div>
-        <div class="mt-4 pt-3" style="border-top:2px dashed #e2e8f0;">
-          <div class="flex justify-between text-sm mb-1"><span class="muted font-bold">เลขออเดอร์</span><span id="sumOrderId" class="font-black">-</span></div>
-          <div class="flex justify-between text-sm mb-1"><span class="muted font-bold">ชื่อ</span><span id="sumName" class="font-bold">-</span></div>
-          <div class="flex justify-between text-sm mb-1"><span class="muted font-bold">เบอร์</span><span id="sumPhone" class="font-bold">-</span></div>
-          <div class="flex justify-between text-sm mb-1"><span class="muted font-bold">วันรับ</span><span id="sumDate" class="font-bold">-</span></div>
-          <div class="flex justify-between text-sm mb-1"><span class="muted font-bold">จุดนัดรับ</span><span id="sumLocation" class="font-bold">-</span></div>
-        </div>
-        <div class="mt-3 pt-3" style="border-top:2px dashed #e2e8f0;"><div id="sumItems" class="space-y-1 text-sm"></div></div>
-        <div id="sumPromoNote" class="mt-3 p-3 rounded-2xl font-black text-sm text-center" style="display:none; background:#f0fdf4;">🧊 คุณได้รับถุงเก็บความเย็นฟรี 1 ใบ!</div>
-        <div class="mt-3 pt-3 flex justify-between items-end" style="border-top:2px solid #6b4226;">
-          <span class="font-bold">ยอดรวม</span>
-          <span id="sumTotal" class="num text-3xl" style="color:#6b4226;">0฿</span>
-        </div>
-      </div>
-      <div class="grid grid-cols-2 gap-2 mt-3">
-        <button onclick="saveSummaryImage()" class="bg-slate-900 text-white rounded-xl py-3 font-black">บันทึกรูป</button>
-        <button onclick="closeSummary()" class="bg-slate-200 rounded-xl py-3 font-black" id="closeSummaryBtn">ปิด</button>
-      </div>
-    </div>
-  </div>
-
-  <div id="promoModal" class="modal">
-    <div class="promocard">
-      <div style="font-size:40px;">🧊</div>
-      <div class="font-black text-xl mt-1" style="color:#6b4226;">เกือบแล้ว!</div>
-      <div class="muted font-bold text-sm mt-2" style="line-height:1.6;">ซื้อครบ <span style="color:#059669;">400฿</span> ขึ้นไป รับฟรี<br>ถุงเก็บความเย็นทันที 🎁</div>
-      <div class="mt-3 mb-1" style="font-size:14px;">ตอนนี้ยอดของคุณ <b id="promoCurrentTotal">0฿</b><br>อีกแค่ <span id="promoNeedMore" style="color:#dc2626; font-weight:900;">0฿</span> ก็ได้ของแถมแล้ว!</div>
-      <div class="grid grid-cols-2 gap-2 mt-4">
-        <button onclick="closePromo()" class="bg-orange-500 text-white rounded-xl py-3 font-black">เลือกเพิ่ม</button>
-        <button onclick="proceedWithoutPromo()" class="bg-slate-200 rounded-xl py-3 font-black">สั่งเลย</button>
-      </div>
-    </div>
-  </div>
-
-  <div id="signupModal" class="modal">
-    <div class="promocard">
-      <div style="font-size:40px;">🎉</div>
-      <div class="font-black text-xl mt-1" style="color:#6b4226;">สมัครสมาชิก 648 LAB CLUB</div>
-      <div class="muted font-bold text-sm mt-2" style="line-height:1.6;">สวัสดีคุณ <span id="signupName" style="color:#0f172a;">-</span><br>สมัครฟรี สะสมแต้มทันที + ครั้งหน้าเบอร์โทร/จุดนัดรับ<br>ขึ้นให้อัตโนมัติ ไม่ต้องพิมพ์ซ้ำ</div>
-      <input id="signupPhone" type="tel" inputmode="numeric" class="signup-input" placeholder="เบอร์โทร *">
-      <div class="grid grid-cols-1 gap-2 mt-3">
-        <button onclick="submitSignup(event)" class="bg-orange-500 text-white rounded-xl py-3 font-black">สมัครสมาชิก</button>
-        <button onclick="skipSignup()" class="skiplink">ข้ามตอนนี้ สั่งแบบไม่สมัครก่อน</button>
-      </div>
-    </div>
-  </div>
-
-  <div id="toast" class="toast"></div>
+</div>
 
 <script>
 'use strict';
+function esc(x){ return String(x == null ? '' : x).replace(/[&<>"']/g, function(c){ return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]; }); }
+function money(n){ return Math.round(Number(n || 0)).toLocaleString('th-TH') + '฿'; }
+function parseBakeDate_(v) {
+  const t = String(v || '').trim();
+  let m = t.match(/^(\d{4})-(\d{2})-(\d{2})/);
+  if (m) return new Date(Number(m[1]), Number(m[2]) - 1, Number(m[3]));
+  m = t.match(/^(\d{2})\/(\d{2})\/(\d{4})/);
+  if (m) return new Date(Number(m[3]), Number(m[2]) - 1, Number(m[1]));
+  const d = new Date(); d.setHours(0, 0, 0, 0); return d;
+}
+function pipeDate_(d) {
+  return String(d.getDate()).padStart(2, '0') + ' | ' + String(d.getMonth() + 1).padStart(2, '0') + ' | ' + d.getFullYear();
+}
+function plusDays_(d, n) { const x = new Date(d); x.setDate(x.getDate() + n); return x; }
 
-/* ===== โหมด =====
-   ลูกค้า: เปิดผ่าน LINE (LIFF) ตามปกติ
-   ร้าน:   order.html?mode=admin — หน้าเดียวกันทุกอย่าง แต่ไม่ล็อกอิน LINE ใช้คีย์แทนลูกค้า (เปิดจากแท็บ Order ในหน้า Admin) */
-const ADMIN_MODE = new URLSearchParams(location.search).get('mode') === 'admin';
-
-/* ===== LIFF / API ===== */
-const LIFF_ID = '2011234449-KO3mK4Bf';
-let LINE_USER_ID = '';
-let LINE_NAME = '';
-const API_BASE_URL = 'https://script.google.com/macros/s/AKfycbzRz-C9HeY03xi0c4n_431xuYFfA9aHnreKvcEP7zl1dhbVZhhphbn8lrePthX-26drZA/exec';
-
-/* GET: จำกัดเวลา 20 วิ ลองใหม่ 1 ครั้ง */
-async function apiGet(params, tries){
-  tries = tries || 2;
-  const qs = new URLSearchParams(params).toString();
-  for (let i = 1; i <= tries; i++) {
-    const ctrl = new AbortController();
-    const timer = setTimeout(function(){ ctrl.abort(); }, 20000);
-    try {
-      const res = await fetch(API_BASE_URL + '?' + qs, { signal: ctrl.signal });
-      clearTimeout(timer);
-      return await res.json();
-    } catch (err) {
-      clearTimeout(timer);
-      if (i === tries) throw err;
-    }
-  }
+function dropSlipHtml_(data) {
+  const mfg = parseBakeDate_(data.bakeDate);
+  return '<div class="ds" id="dropSlip">' +
+    '<div class="ds-top"><span>648 SOURDOUGH LAB</span><span>' + esc(data.orderId || '') + '</span></div>' +
+    '<div class="ds-main">' +
+      '<div style="min-width:0;">' +
+        '<div class="ds-name">' + esc(data.customerName || '-') + '</div>' +
+        '<div class="ds-loc">📍 <b>จุดรับ:</b> ' + esc(data.pickupLocation || '-') + '</div>' +
+      '</div>' +
+      '<div class="ds-price"><small>ยอดรวม (TOTAL)</small><div>' + money(data.totalAmount || 0) + '</div></div>' +
+    '</div>' +
+    '<div class="ds-dates">' +
+      '<div class="ds-h">วันผลิตและวันหมดอายุ <span>(PRODUCT DATES)</span></div>' +
+      '<div class="ds-mfg">วันที่ผลิต (MFG Date): <b>' + pipeDate_(mfg) + '</b></div>' +
+      '<div class="ds-bb">ควรบริโภคก่อน (Best Before)</div>' +
+      '<div class="ds-cols">' +
+        '<div><small>เก็บนอกตู้เย็น</small><b>' + pipeDate_(plusDays_(mfg, 4)) + '</b></div>' +
+        '<div><small>เก็บในตู้เย็น</small><b>' + pipeDate_(plusDays_(mfg, 7)) + '</b></div>' +
+        '<div><small>เก็บในช่องแช่แข็ง</small><b>' + pipeDate_(plusDays_(mfg, 90)) + '</b></div>' +
+      '</div>' +
+    '</div>' +
+  '</div>';
 }
 
-/* POST: ส่งออเดอร์ รอ 60 วิ ไม่ลองซ้ำ (กันออเดอร์ซ้ำ) · text/plain เพื่อเลี่ยง preflight */
-async function apiPost(payload){
-  const ctrl = new AbortController();
-  const timer = setTimeout(function(){ ctrl.abort(); }, 60000);
-  try {
-    const res = await fetch(API_BASE_URL, {
-      method: 'POST',
-      headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-      body: JSON.stringify(payload),
-      signal: ctrl.signal
-    });
-    return await res.json();
-  } finally {
-    clearTimeout(timer);
-  }
-}
 
-/* ===== รอบรับ =====
-   กติกา: สั่งภายในวันศุกร์ (นับรวมวันศุกร์) → รับวันอังคาร / พฤหัสบดี ของสัปดาห์ถัดไป
-   สั่งวันเสาร์-อาทิตย์ → ถือเป็นรอบสัปดาห์ใหม่ รับอังคาร / พฤหัสบดี ของอีกสัปดาห์ถัดไป */
-const PICKUP_DAYS = [2, 4];          // 0=อา 1=จ 2=อ 3=พ 4=พฤ 5=ศ 6=ส
-const ORDER_CUTOFF_DAY = 5;          // วันสุดท้ายที่สั่งได้ของรอบ (5 = ศุกร์)
-const PICKUP_WEEKS_SHOWN = 2;        // แสดงรอบรับกี่สัปดาห์ (สัปดาห์แรก = รอบที่สั่งทัน)
-const DAY_TH = ['อาทิตย์','จันทร์','อังคาร','พุธ','พฤหัสบดี','ศุกร์','เสาร์'];
-const DAY_TH_SHORT = ['อา.','จ.','อ.','พ.','พฤ.','ศ.','ส.'];
-
-/* ===== สินค้า (ราคา/น้ำหนักจริงคำนวณซ้ำที่ server) ===== */
-const PLAIN_F = 720, PLAIN_H = 360, FLAVOR_F = 690, FLAVOR_H = 345, PIZZA = 250;
-const PROMO_THRESHOLD = 400;
-const IMAGE_BASE_URL = 'https://648-nu.vercel.app/';
-function imgUrl(code){ return IMAGE_BASE_URL + code + '.png'; }
-
-const PRODUCTS = [
-  { code:'SD-SIGN-F', name:'Signature Plain Full Loaf', cat:'Sourdough', price:200, dough:PLAIN_F },
-  { code:'SD-SIGN-H', name:'Signature Plain Half Loaf', cat:'Sourdough', price:129, dough:PLAIN_H },
-  { code:'SD-BACH-F', name:'Bacon & Cheese Full Loaf', cat:'Sourdough', price:289, dough:FLAVOR_F },
-  { code:'SD-BACH-H', name:'Bacon & Cheese Half Loaf', cat:'Sourdough', price:169, dough:FLAVOR_H },
-  { code:'SD-CBWN-F', name:'Cranberry Walnut Full Loaf', cat:'Sourdough', price:269, dough:FLAVOR_F },
-  { code:'SD-CBWN-H', name:'Cranberry Walnut Half Loaf', cat:'Sourdough', price:159, dough:FLAVOR_H },
-  { code:'SD-PTCH-F', name:'Pesto & Cheese Full Loaf', cat:'Sourdough', price:269, dough:FLAVOR_F },
-  { code:'SD-PTCH-H', name:'Pesto & Cheese Half Loaf', cat:'Sourdough', price:159, dough:FLAVOR_H },
-  { code:'SD-DCHB-F', name:'Double Cheese & Herb Full Loaf', cat:'Sourdough', price:289, dough:FLAVOR_F },
-  { code:'SD-DCHB-H', name:'Double Cheese & Herb Half Loaf', cat:'Sourdough', price:179, dough:FLAVOR_H },
-  { code:'SP-CLSP', name:'Clam Soup 280 ml', cat:'Soup', price:39, dough:0 },
-  { code:'BR-SET', name:'Brunch Set Half Loaf + Soup', cat:'Bundle', price:159, dough:365 },
-  { code:'PZ-BCN-10', name:'Bacon Lover 10"', cat:'Pizza', price:229, dough:PIZZA },
-  { code:'PZ-CHK-10', name:'Smoke Chicken 10"', cat:'Pizza', price:219, dough:PIZZA },
-  { code:'PZ-CBN-10', name:'Carbonara 10"', cat:'Pizza', price:229, dough:PIZZA },
-  { code:'PZ-MSC-10', name:'Mushroom White Sauce 10"', cat:'Pizza', price:219, dough:PIZZA },
-  { code:'PZ-SPN-10', name:'Spinach Cheese 10"', cat:'Pizza', price:219, dough:PIZZA }
-];
-
-/* การ์ดรส Sourdough (Full + Half อยู่การ์ดเดียว) */
-const FLAVORS = [
-  { name:'Signature Plain', full:'SD-SIGN-F', half:'SD-SIGN-H', desc:'สูตรต้นตำรับ หอมกลิ่นหมัก' },
-  { name:'Cranberry Walnut', full:'SD-CBWN-F', half:'SD-CBWN-H' },
-  { name:'Pesto & Cheese', full:'SD-PTCH-F', half:'SD-PTCH-H' },
-  { name:'Bacon & Cheese', full:'SD-BACH-F', half:'SD-BACH-H' },
-  { name:'Double Cheese & Herb', full:'SD-DCHB-F', half:'SD-DCHB-H' }
-];
-
-/* ===== DIY =====
-   รายการรสชาติ / ซอส / ท็อปปิ้ง ดึงจาก server (ชีต DIY_MASTER) ทุกครั้งที่เปิดหน้า
-   ค่าด้านล่างเป็นค่าสำรอง ใช้เฉพาะตอนที่ยังโหลดไม่เสร็จหรือโหลดไม่ได้ (server คำนวณราคาซ้ำทุกออเดอร์) */
-let DIY_CFG = {
-  "code": "SD-DIY-F",
-  "basePrice": 200,
-  "plainDough": 720,
-  "addDough": 690,
-  "refDough": 730,
-  "refFlour": 368,
-  "capPct": 0.2,
-  "maxTops": 3,
-  "packaging": 0,
-  "tierPrice": {
-    "0": 0,
-    "1": 10,
-    "2": 30,
-    "3": 40,
-    "4": 50
-  },
-  "tierName": {
-    "0": "ฟรี",
-    "1": "ธัญพืช +10฿",
-    "2": "ผลไม้แห้ง ช็อกชิพ มะกอก +30฿",
-    "3": "ชีสนุ่มและถั่ว +40฿",
-    "4": "เนื้อและชีสแข็ง +50฿"
-  },
-  "baseRecipe": [],
-  "slices": [
-    {
-      "id": "thin",
-      "name": "บาง ~1.2 ซม.",
-      "use": "ปิ้งกรอบ ทาเนย/แยม"
-    },
-    {
-      "id": "std",
-      "name": "มาตรฐาน ~1.5 ซม.",
-      "use": "กินทั่วไป แซนด์วิช"
-    },
-    {
-      "id": "thick",
-      "name": "หนา ~2 ซม.",
-      "use": "เฟรนช์โทสต์ จิ้มซุป"
-    }
-  ],
-  "hotPicks": [
-    {
-      "code": "SD-SIGN-F",
-      "name": "Signature Plain Full Loaf",
-      "taste": "none",
-      "sauce": "none",
-      "tops": []
-    },
-    {
-      "code": "SD-CBWN-F",
-      "name": "Cranberry Walnut Full Loaf",
-      "taste": "none",
-      "sauce": "none",
-      "tops": [
-        "cranberry",
-        "walnut"
-      ]
-    },
-    {
-      "code": "SD-PTCH-F",
-      "name": "Pesto & Cheese Full Loaf",
-      "taste": "none",
-      "sauce": "pesto",
-      "tops": [
-        "mozzarella"
-      ]
-    },
-    {
-      "code": "SD-BACH-F",
-      "name": "Bacon & Cheese Full Loaf",
-      "taste": "none",
-      "sauce": "none",
-      "tops": [
-        "bacon",
-        "mozzarella"
-      ]
-    },
-    {
-      "code": "SD-DCHB-F",
-      "name": "Double Cheese & Herb Full Loaf",
-      "taste": "none",
-      "sauce": "none",
-      "tops": [
-        "mozzarella",
-        "gouda",
-        "herb"
-      ]
-    }
-  ],
-  "itemSource": "DEFAULT",
-  "tastes": [
-    {
-      "id": "none",
-      "key": "",
-      "name": "ธรรมดา",
-      "price": 0,
-      "pct": 0,
-      "w": 1,
-      "pf": "n",
-      "active": true
-    },
-    {
-      "id": "cocoa",
-      "key": "cocoa",
-      "name": "Chocolate",
-      "price": 20,
-      "pct": 0.076,
-      "w": 1,
-      "pf": "s",
-      "active": true
-    },
-    {
-      "id": "matcha",
-      "key": "matcha",
-      "name": "Matcha",
-      "price": 20,
-      "pct": 0.035,
-      "w": 1,
-      "pf": "s",
-      "active": true
-    },
-    {
-      "id": "charcoal",
-      "key": "charcoal",
-      "name": "Charcoal",
-      "price": 20,
-      "pct": 0.018,
-      "w": 1,
-      "pf": "n",
-      "active": true
-    }
-  ],
-  "sauces": [
-    {
-      "id": "none",
-      "key": "",
-      "name": "ไม่ใส่",
-      "price": 0,
-      "pct": 0,
-      "w": 1,
-      "pf": "n",
-      "active": true
-    },
-    {
-      "id": "pesto",
-      "key": "pesto",
-      "name": "Pesto",
-      "price": 30,
-      "pct": 0.09,
-      "w": 1,
-      "pf": "v",
-      "active": true
-    },
-    {
-      "id": "pizza",
-      "key": "pizzaSauce",
-      "name": "Pizza",
-      "price": 20,
-      "pct": 0.1,
-      "w": 1,
-      "pf": "v",
-      "active": true
-    },
-    {
-      "id": "truffle",
-      "key": "truffle",
-      "name": "Truffle",
-      "price": 30,
-      "pct": 0.03,
-      "w": 1,
-      "pf": "v",
-      "active": true
-    }
-  ],
-  "tops": [
-    {
-      "id": "herb",
-      "key": "garlicHerb",
-      "name": "สมุนไพร",
-      "tier": 0,
-      "pct": 0.02,
-      "w": 1,
-      "pf": "n",
-      "active": true
-    },
-    {
-      "id": "sesame",
-      "key": "sesame",
-      "name": "งาขาว-ดำ",
-      "tier": 1,
-      "pct": 0.09,
-      "w": 1,
-      "pf": "n",
-      "active": true
-    },
-    {
-      "id": "riceberry",
-      "key": "riceberryCooked",
-      "name": "ข้าวไรซ์เบอร์รี่",
-      "tier": 1,
-      "pct": 0.15,
-      "w": 1,
-      "pf": "n",
-      "active": true
-    },
-    {
-      "id": "oat",
-      "key": "oat",
-      "name": "ข้าวโอ๊ต",
-      "tier": 1,
-      "pct": 0.1,
-      "w": 1,
-      "pf": "n",
-      "active": true
-    },
-    {
-      "id": "pumpkin",
-      "key": "pumpkinSeed",
-      "name": "เมล็ดฟักทอง",
-      "tier": 1,
-      "pct": 0.125,
-      "w": 1,
-      "pf": "n",
-      "active": true
-    },
-    {
-      "id": "sunflower",
-      "key": "sunflowerSeed",
-      "name": "เมล็ดทานตะวัน",
-      "tier": 1,
-      "pct": 0.125,
-      "w": 1,
-      "pf": "n",
-      "active": true
-    },
-    {
-      "id": "cranberry",
-      "key": "cranberry",
-      "name": "แครนเบอร์รี่",
-      "tier": 2,
-      "pct": 0.2,
-      "w": 1,
-      "pf": "s",
-      "active": true
-    },
-    {
-      "id": "chip",
-      "key": "chocChip",
-      "name": "ช็อกชิพ",
-      "tier": 2,
-      "pct": 0.18,
-      "w": 1,
-      "pf": "s",
-      "active": true
-    },
-    {
-      "id": "olive",
-      "key": "olive",
-      "name": "มะกอก",
-      "tier": 2,
-      "pct": 0.18,
-      "w": 0.5,
-      "pf": "v",
-      "active": true
-    },
-    {
-      "id": "mozzarella",
-      "key": "mozzarella",
-      "name": "มอสซาเรลล่า",
-      "tier": 3,
-      "pct": 0.15,
-      "w": 1,
-      "pf": "v",
-      "active": true
-    },
-    {
-      "id": "walnut",
-      "key": "walnut",
-      "name": "วอลนัท",
-      "tier": 3,
-      "pct": 0.15,
-      "w": 1,
-      "pf": "n",
-      "active": true
-    },
-    {
-      "id": "almond",
-      "key": "almond",
-      "name": "อัลมอนด์",
-      "tier": 3,
-      "pct": 0.15,
-      "w": 1,
-      "pf": "n",
-      "active": true
-    },
-    {
-      "id": "bacon",
-      "key": "bacon",
-      "name": "เบคอน",
-      "tier": 4,
-      "pct": 0.125,
-      "w": 1,
-      "pf": "v",
-      "active": true
-    },
-    {
-      "id": "gouda",
-      "key": "gouda",
-      "name": "เกาด้า",
-      "tier": 4,
-      "pct": 0.15,
-      "w": 1,
-      "pf": "v",
-      "active": true
-    },
-    {
-      "id": "cheddar",
-      "key": "cheddar",
-      "name": "เชดด้า",
-      "tier": 4,
-      "pct": 0.18,
-      "w": 1,
-      "pf": "v",
-      "active": true
-    }
-  ]
-};
-try {
-  const cached = JSON.parse(localStorage.getItem('diyCfgV1') || 'null');
-  if (cached && cached.tops && cached.tops.length) DIY_CFG = cached;
-} catch (e) {}
-
-async function loadDiyConfig(){
-  try {
-    const res = await apiGet({ api: 'getDiyConfig' });
-    if (!res || !res.ok || !res.cfg || !res.cfg.tops) return;
-    DIY_CFG = res.cfg;
-    try { localStorage.setItem('diyCfgV1', JSON.stringify(res.cfg)); } catch (e) {}
-    // ก้อน DIY ในตะกร้าที่มีวัตถุดิบปิดขายไปแล้ว → เอาออกและแจ้ง
-    const before = diyCart.length;
-    diyCart = diyCart.filter(function(d){ return diyCompute_(DIY_CFG, d.sel).ok && selAllActive(d.sel); });
-    if (diyCart.length < before) toast('มีวัตถุดิบบางรายการหมดฤดูกาล นำก้อน DIY นั้นออกจากตะกร้าแล้ว');
-    if (!selAllActive(DIY_SEL)) DIY_SEL = { taste:'none', sauce:'none', tops:[], slice: DIY_SEL.slice || 'std' };
-    renderMenu(); renderCart();
-    if (document.getElementById('view-diy').classList.contains('active')) diyRender();
-  } catch (e) { console.error('loadDiyConfig', e); }
-}
-function selAllActive(sel){
-  const has = function(list, id){ return id === 'none' || list.some(function(x){ return x.id === id && x.active !== false; }); };
-  return has(DIY_CFG.tastes, sel.taste || 'none') && has(DIY_CFG.sauces, sel.sauce || 'none') &&
-         (sel.tops || []).every(function(id){ return has(DIY_CFG.tops, id); });
-}
-
-/* สำเนาจาก diyCompute_() ใน DIY.gs — ห้ามแก้แยก */
-function diyCompute_(cfg, sel) {
-  sel = sel || {};
-  function find(list, id) { for (var i = 0; i < list.length; i++) if (list[i].id === id) return list[i]; return null; }
-  function keyOf(taste, sauce, tops) {
-    return [taste || 'none', sauce || 'none'].concat((tops || []).slice().sort())
-      .filter(function(v) { return v !== 'none'; }).join('|') || 'plain';
-  }
-
-  var t = find(cfg.tastes, sel.taste || 'none');
-  var s = find(cfg.sauces, sel.sauce || 'none');
-  if (!t || !s) return { ok: false, error: 'ตัวเลือกรสชาติหรือซอสไม่ถูกต้อง' };
-
-  var tops = [], ids = sel.tops || [];
-  for (var i = 0; i < ids.length; i++) {
-    var x = find(cfg.tops, ids[i]);
-    if (!x) return { ok: false, error: 'ไม่พบท็อปปิ้ง ' + ids[i] };
-    if (tops.indexOf(x) === -1) tops.push(x);
-  }
-  if (tops.length > cfg.maxTops) return { ok: false, error: 'เลือกท็อปปิ้งได้สูงสุด ' + cfg.maxTops + ' อย่าง' };
-
-  var pfs = [t.pf, s.pf].concat(tops.map(function(x) { return x.pf; }));
-  if (pfs.indexOf('s') !== -1 && pfs.indexOf('v') !== -1) return { ok: false, error: 'ไม่ผสมรสหวานกับรสคาวในก้อนเดียว' };
-
-  var hasAdd = s.id !== 'none' || tops.length > 0;   // รสชาติอย่างเดียวยังใช้โดว์ 720g
-  var dough = hasAdd ? cfg.addDough : cfg.plainDough;
-  var factor = dough / cfg.refDough;
-  var flour = cfg.refFlour * factor;
-  var cap = Math.floor(flour * cfg.capPct);
-
-  var cost = 0, baseGrams = {}, grams = {}, lines = [];
-  cfg.baseRecipe.forEach(function(b) { var g = b.g * factor; baseGrams[b.key] = g; cost += g * b.ppg; });
-
-  var tg = Math.round(t.pct * flour), sg = Math.min(cap, Math.round(s.pct * flour));
-  if (tg) { grams[t.key] = tg; cost += tg * t.ppg; lines.push({ label: 'รส ' + t.name, g: tg, price: t.price }); }
-  if (sg) { grams[s.key] = sg; cost += sg * s.ppg; lines.push({ label: 'ซอส ' + s.name, g: sg, price: s.price }); }
-
-  // แบ่งน้ำหนักแบบเติมน้ำ: ตามค่า w และไม่เกินสัดส่วนทองคำ
-  var rem = Math.max(0, cap - sg);
-  var gold = tops.map(function(x) { return x.pct * flour; });
-  var g = tops.map(function() { return 0; });
-  var open = tops.map(function(_, i) { return i; });
-  while (open.length) {
-    var sw = 0; open.forEach(function(i) { sw += tops[i].w; });
-    var capped = open.filter(function(i) { return rem * tops[i].w / sw >= gold[i]; });
-    if (!capped.length) { open.forEach(function(i) { g[i] = rem * tops[i].w / sw; }); break; }
-    capped.forEach(function(i) { g[i] = gold[i]; rem -= gold[i]; });
-    open = open.filter(function(i) { return capped.indexOf(i) === -1; });
-  }
-  tops.forEach(function(x, i) {
-    var v = Math.floor(g[i]);
-    grams[x.key] = (grams[x.key] || 0) + v;
-    cost += v * x.ppg;
-    lines.push({ label: x.name, g: v, price: cfg.tierPrice[x.tier] || 0 });
-  });
-
-  var add = t.price + s.price;
-  tops.forEach(function(x) { add += cfg.tierPrice[x.tier] || 0; });
-  var price = cfg.basePrice + add - (add > 0 ? 1 : 0);
-  cost += cfg.packaging;
-
-  var comboKey = keyOf(t.id, s.id, tops.map(function(x) { return x.id; }));
-  var hot = null;
-  cfg.hotPicks.forEach(function(h) { if (keyOf(h.taste, h.sauce, h.tops) === comboKey) hot = h; });
-
-  var parts = [];
-  if (t.id !== 'none') parts.push(t.name);
-  if (s.id !== 'none') parts.push(s.name);
-  tops.forEach(function(x) { parts.push(x.name); });
-
-  var slice = find(cfg.slices, sel.slice || 'std') || cfg.slices[1];
-  var used = 0; Object.keys(grams).forEach(function(k) { if (k !== t.key) used += grams[k]; });
-
-  return {
-    ok: true,
-    code: hot ? hot.code : cfg.code,
-    name: hot ? hot.name : 'DIY: ' + (parts.join(' + ') || 'Plain') + ' Full Loaf',
-    price: price,
-    dough: dough,
-    flour: Math.round(flour),
-    cap: cap,
-    used: used,
-    grams: grams,
-    baseGrams: baseGrams,
-    lines: lines,
-    foodCost: Math.round(cost * 100) / 100,
-    marginPct: Math.round((price - cost) / price * 1000) / 10,
-    comboKey: comboKey,
-    hotPick: hot ? hot.code : '',
-    slice: slice.id,
-    sliceName: slice.name,
-    sel: { taste: t.id, sauce: s.id, tops: tops.map(function(x) { return x.id; }), slice: slice.id }
-  };
-}
-
-let cart = {};          // เมนูแนะนำ: { code: qty }
-let diyCart = [];       // DIY: [{ key, sel, qty }]
-let DIY_SEL = { taste: 'none', sauce: 'none', tops: [], slice: 'std' };
-
-/* ===== helpers ===== */
-function money(n){ return Math.round(Number(n||0)).toLocaleString('th-TH') + '฿'; }
-function esc(s){ return String(s==null?'':s).replace(/[&<>"']/g, function(c){ return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]; }); }
-function product(code){ return PRODUCTS.find(function(p){ return p.code === code; }); }
-function toast(msg){
-  const t = document.getElementById('toast');
-  t.textContent = msg; t.style.display = 'block';
-  clearTimeout(window.__toastT);
-  window.__toastT = setTimeout(function(){ t.style.display = 'none'; }, 1800);
-}
-function onImgError(img){ const w = img.parentElement; img.remove(); w.textContent = '🍞'; }
-
-function hotOf(fullCode){ return DIY_CFG.hotPicks.filter(function(h){ return h.code === fullCode; })[0]; }
-function hotDesc(fullCode){
-  const h = hotOf(fullCode); if (!h) return '';
-  const names = [];
-  const s = DIY_CFG.sauces.filter(function(x){ return x.id === h.sauce; })[0];
-  if (s && s.id !== 'none') names.push('ซอส ' + s.name);
-  h.tops.forEach(function(id){ const t = DIY_CFG.tops.filter(function(x){ return x.id === id; })[0]; if (t) names.push(t.name); });
-  return names.join(' · ');
-}
-
-/* ===== แท็บ ===== */
-function showTab(name){
-  ['menu','diy'].forEach(function(k){
-    document.getElementById('tab-' + k).classList.toggle('on', k === name);
-    document.getElementById('view-' + k).classList.toggle('active', k === name);
-  });
-  document.body.classList.toggle('diy-open', name === 'diy');
-  if (name === 'diy') diyRender();
-  window.scrollTo({ top: 0 });
-}
-
-/* ===== รอบรับ ===== */
 function ymd(d){ return d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0') + '-' + String(d.getDate()).padStart(2,'0'); }
-function addDays(d, n){ const x = new Date(d); x.setDate(x.getDate() + n); return x; }
-function thShort(d){ return DAY_TH_SHORT[d.getDay()] + ' ' + d.toLocaleDateString('th-TH', { day:'numeric', month:'short' }); }
-
-/* หาวันจันทร์ของสัปดาห์ที่จะรับสินค้า ตามกติกาตัดรอบวันศุกร์ */
-function pickupWeekMonday(today){
-  const day = today.getDay();                                   // 0=อา ... 6=ส
-  const nextMonday = addDays(today, ((8 - day) % 7) || 7);
-  const passedCutoff = day === 0 || day > ORDER_CUTOFF_DAY;     // เสาร์-อาทิตย์ = เลยวันตัดรอบแล้ว
-  return passedCutoff ? addDays(nextMonday, 7) : nextMonday;
+const F = ['name','total','orderId','loc','mfg'];
+function $(id){ return document.getElementById(id); }
+function data(){
+  return { customerName: $('name').value.trim() || '-', totalAmount: $('total').value, orderId: $('orderId').value.trim(),
+           pickupLocation: $('loc').value.trim() || '-', bakeDate: $('mfg').value };
 }
-
-function renderRounds(){
-  const today = new Date(); today.setHours(0,0,0,0);
-  const monday = pickupWeekMonday(today);
-  const cutoff = addDays(monday, -7 + (ORDER_CUTOFF_DAY - 1));  // ศุกร์ก่อนสัปดาห์รับ
-  const out = [];
-  for (let w = 0; w < PICKUP_WEEKS_SHOWN; w++) {
-    PICKUP_DAYS.forEach(function(dow){ out.push(addDays(monday, w * 7 + (dow - 1))); });
-  }
-  document.getElementById('pickDate').innerHTML = out.map(function(d, i){
-    const label = d.toLocaleDateString('th-TH', { weekday:'long', day:'numeric', month:'short' });
-    return '<option value="' + ymd(d) + '">' + label + (i < PICKUP_DAYS.length ? ' (รอบถัดไป)' : '') + '</option>';
-  }).join('');
-
-  const days = PICKUP_DAYS.map(function(n){ return DAY_TH[n]; }).join(' / ');
-  document.getElementById('roundInfo').innerHTML =
-    'สั่งภายในวัน' + DAY_TH[ORDER_CUTOFF_DAY] + '<br>รับ' + days + ' สัปดาห์ถัดไป';
-  document.getElementById('roundHint').textContent =
-    'สั่งภายใน ' + thShort(cutoff) + ' → รับ ' + out.slice(0, PICKUP_DAYS.length).map(thShort).join(' หรือ ');
-  document.getElementById('roundBanner').innerHTML =
-    '📅 <b>สั่งภายในวัน' + DAY_TH[ORDER_CUTOFF_DAY] + ' รับวัน' + days + ' ของสัปดาห์ถัดไป</b><br>' +
-    '<span>รอบนี้ปิดรับ ' + thShort(cutoff) + ' · รับ ' + out.slice(0, PICKUP_DAYS.length).map(thShort).join(' หรือ ') + '</span>';
-}
-
-/* ===== แท็บ เมนูแนะนำ ===== */
-function qtyCtrl(code){
-  const q = cart[code] || 0;
-  return q > 0
-    ? '<div class="qty"><button class="qtybtn" aria-label="ลด" onclick="dec(\'' + code + '\')">−</button>' +
-      '<span class="num" style="min-width:22px;text-align:center;">' + q + '</span>' +
-      '<button class="qtybtn" aria-label="เพิ่ม" onclick="inc(\'' + code + '\')">+</button></div>'
-    : '<button class="addbtn" onclick="inc(\'' + code + '\')">เพิ่ม</button>';
-}
-
-function renderMenu(){
-  document.getElementById('flavorList').innerHTML = FLAVORS.map(function(f){
-    const F = product(f.full), H = product(f.half);
-    const desc = f.desc || hotDesc(f.full);
-    return '<div class="card flavor">' +
-      '<div class="img-wrap"><img src="' + imgUrl(f.full) + '" alt="' + esc(f.name) + '" loading="lazy" onerror="onImgError(this)"></div>' +
-      '<div style="flex:1; min-width:0;">' +
-        '<div class="font-bold" style="font-size:16px; line-height:1.2;">' + esc(f.name) + '</div>' +
-        (desc ? '<div class="text-xs muted font-bold mb-1">' + esc(desc) + '</div>' : '') +
-        '<div class="size-row"><div class="size-label">Full · ' + money(F.price) + '<small>ทั้งก้อน · โดว์ ' + F.dough + 'g</small></div>' + qtyCtrl(F.code) + '</div>' +
-        '<div class="size-row"><div class="size-label">Half · ' + money(H.price) + '<small>ครึ่งก้อน · หั่นแบ่งจากก้อนเต็ม</small></div>' + qtyCtrl(H.code) + '</div>' +
-        '<button class="customize" onclick="customizeFrom(\'' + f.full + '\')">ปรับสูตรเอง →</button>' +
-      '</div></div>';
-  }).join('');
-
-  const others = PRODUCTS.filter(function(p){ return p.cat !== 'Sourdough'; });
-  document.getElementById('otherList').innerHTML = others.map(function(p){
-    return '<div class="card flavor" style="align-items:center;">' +
-      '<div class="img-wrap"><img src="' + imgUrl(p.code) + '" alt="' + esc(p.name) + '" loading="lazy" onerror="onImgError(this)"></div>' +
-      '<div style="flex:1; min-width:0;"><div class="font-bold" style="font-size:15px;">' + esc(p.name) + '</div>' +
-      '<div class="num" style="color:#6b4226;">' + money(p.price) + '</div></div>' + qtyCtrl(p.code) + '</div>';
-  }).join('');
-}
-
-function inc(code){ cart[code] = (cart[code]||0) + 1; renderMenu(); renderCart(); }
-function dec(code){ cart[code] = (cart[code]||0) - 1; if (cart[code] <= 0) delete cart[code]; renderMenu(); renderCart(); }
-
-/* "ปรับสูตรเอง →" ไปแท็บ DIY พร้อมโหลดสูตรนั้น */
-function customizeFrom(fullCode){
-  const h = hotOf(fullCode);
-  DIY_SEL = h ? { taste: h.taste, sauce: h.sauce, tops: h.tops.slice(), slice: 'std' } : { taste:'none', sauce:'none', tops:[], slice:'std' };
-  showTab('diy');
-  toast('โหลดสูตร ' + (h ? h.name.replace(' Full Loaf','') : '') + ' แล้ว ปรับต่อได้เลย');
-}
-
-/* Hot Pick จากแท็บเมนู → แนบสูตรให้ server คำนวณโดว์/ท็อปปิ้งแบบเดียวกับ DIY */
-function hotSelFor(code){
-  const isHalf = /-H$/.test(code);
-  const h = hotOf(isHalf ? code.replace(/-H$/, '-F') : code);
-  if (!h) return null;
-  return { sel: { taste: h.taste, sauce: h.sauce, tops: h.tops.slice(), slice: 'std' }, half: isHalf };
-}
-
-/* ===== แท็บ จัดก้อนเอง ===== */
-function diyTry(patch){
-  const sel = Object.assign({}, DIY_SEL, patch);
-  sel.tops = (patch && patch.tops) ? patch.tops : DIY_SEL.tops.slice();
-  return diyCompute_(DIY_CFG, sel);
-}
-function chip(label, sub, on, r, onclick){
-  const dis = !on && r && !r.ok;
-  return '<button type="button" class="chip' + (on ? ' on' : '') + '"' + (dis ? ' disabled' : '') +
-    ' onclick="' + onclick + '">' + esc(label) + '<small>' + esc(dis ? r.error : sub) + '</small></button>';
-}
-
-function diyRender(){
-  const cur = diyCompute_(DIY_CFG, DIY_SEL);
-
-  document.getElementById('diyTaste').innerHTML = DIY_CFG.tastes.filter(function(x){ return x.active !== false; }).map(function(t){
-    return chip(t.name, t.price ? '+' + t.price + '฿' : 'ไม่เพิ่ม', DIY_SEL.taste === t.id, diyTry({ taste: t.id }), "diySet('taste','" + t.id + "')");
-  }).join('');
-
-  document.getElementById('diySauce').innerHTML = DIY_CFG.sauces.filter(function(x){ return x.active !== false; }).map(function(s){
-    return chip(s.name, s.price ? '+' + s.price + '฿' : 'ไม่เพิ่ม', DIY_SEL.sauce === s.id, diyTry({ sauce: s.id }), "diySet('sauce','" + s.id + "')");
-  }).join('');
-
-  document.getElementById('diyTops').innerHTML = [0,1,2,3,4].map(function(tier){
-    const list = DIY_CFG.tops.filter(function(x){ return x.tier === tier && x.active !== false; });
-    if (!list.length) return '';
-    return '<div class="tier-label">' + esc(DIY_CFG.tierName[tier]) + '</div><div class="row">' +
-      list.map(function(x){
-        const on = DIY_SEL.tops.indexOf(x.id) !== -1;
-        const next = on ? DIY_SEL.tops.filter(function(i){ return i !== x.id; }) : DIY_SEL.tops.concat([x.id]);
-        const sub = on && cur.ok ? 'ใส่ ' + (cur.grams[x.key] || 0) + 'g' : (DIY_CFG.tierPrice[tier] ? '+' + DIY_CFG.tierPrice[tier] + '฿' : 'ฟรี');
-        return chip(x.name, sub, on, on ? null : diyTry({ tops: next }), "diyToggle('" + x.id + "')");
-      }).join('') + '</div>';
-  }).join('');
-  document.getElementById('diyTopHint').textContent = 'เลือกได้สูงสุด 3 อย่าง (เลือกแล้ว ' + DIY_SEL.tops.length + ') · ร้านแบ่งปริมาณให้พอดีกับก้อน';
-
-  document.getElementById('diySlice').innerHTML = DIY_CFG.slices.map(function(s){
-    return chip(s.name, s.use, DIY_SEL.slice === s.id, null, "diySet('slice','" + s.id + "')");
-  }).join('');
-
-  const match = document.getElementById('diyMatch');
-  const detail = document.getElementById('diyDetail');
-  const addBtn = document.getElementById('diyAddBtn');
-  if (!cur.ok) {
-    match.style.display = 'none';
-    detail.innerHTML = '<div class="font-bold" style="color:#dc2626;">' + esc(cur.error) + '</div>';
-    document.getElementById('diyBarName').textContent = cur.error;
-    addBtn.disabled = true;
-    return;
-  }
-  addBtn.disabled = false;
-  const name = cur.name.replace(' Full Loaf', '').replace(/^DIY: /, '');
-  if (cur.hotPick) {
-    match.style.display = 'block';
-    match.textContent = '✨ ตรงกับเมนูแนะนำ "' + name + '" ราคาเท่ากัน';
-  } else {
-    match.style.display = 'none';
-  }
-  document.getElementById('diyBarName').textContent = (cur.hotPick ? '' : 'DIY · ') + name + ' · หั่น' + cur.sliceName.split(' ')[0];
-  document.getElementById('diyBarPrice').textContent = money(cur.price);
-  detail.innerHTML =
-    '<div class="font-bold mb-1">สรุปก้อนของคุณ</div>' +
-    '<div class="text-sm font-bold space-y-1">' +
-      '<div class="flex justify-between"><span>โดว์ ' + cur.dough + 'g · หั่น' + esc(cur.sliceName) + '</span><span>200฿</span></div>' +
-      cur.lines.map(function(l){
-        return '<div class="flex justify-between"><span>' + esc(l.label) + ' ' + l.g + 'g</span><span class="muted">' + (l.price ? '+' + l.price + '฿' : 'ฟรี') + '</span></div>';
-      }).join('') +
-      (cur.price !== 200 ? '<div class="flex justify-between muted"><span>ส่วนลดปัดเศษ</span><span>−1฿</span></div>' : '') +
-    '</div>';
-}
-
-function diySet(field, id){ DIY_SEL[field] = id; diyRender(); }
-function diyToggle(id){
-  const i = DIY_SEL.tops.indexOf(id);
-  if (i === -1) DIY_SEL.tops.push(id); else DIY_SEL.tops.splice(i, 1);
-  diyRender();
-}
-function diyReset(){ DIY_SEL = { taste:'none', sauce:'none', tops:[], slice:'std' }; diyRender(); }
-function diyKey(sel){ return [sel.taste, sel.sauce, sel.tops.slice().sort().join('+'), sel.slice].join('|'); }
-
-function diyAddToCart(){
-  const r = diyCompute_(DIY_CFG, DIY_SEL);
-  if (!r.ok) { toast(r.error); return; }
-  const key = diyKey(r.sel);
-  const line = diyCart.filter(function(d){ return d.key === key; })[0];
-  if (line) line.qty += 1;
-  else diyCart.push({ key: key, sel: JSON.parse(JSON.stringify(r.sel)), qty: 1 });
-  renderCart();
-  toast('✓ เพิ่มลงตะกร้าแล้ว');
-}
-
-/* ===== ตะกร้ารวม ===== */
-function cartArray(){
-  const normal = Object.keys(cart).map(function(code){
-    const p = product(code); const qty = cart[code];
-    return Object.assign({}, p, { qty: qty, lineTotal: p.price * qty, hot: hotSelFor(code) });
-  });
-  const diy = diyCart.map(function(d, i){
-    const r = diyCompute_(DIY_CFG, d.sel);
-    return { code: r.code, name: r.name, cat: 'Sourdough', price: r.price, dough: r.dough, qty: d.qty,
-             lineTotal: r.price * d.qty, diySel: d.sel, diyIndex: i, sliceName: r.sliceName, lines: r.lines, hotPick: r.hotPick };
-  });
-  return normal.concat(diy);
-}
-
-function renderCart(){
-  const items = cartArray();
-  const total = items.reduce(function(s, it){ return s + it.lineTotal; }, 0);
-  const count = items.reduce(function(s, it){ return s + it.qty; }, 0);
-  document.getElementById('cartTotal').textContent = money(total);
-  document.getElementById('sheetTotal').textContent = money(total);
-  document.getElementById('cartCount').textContent = count;
-  document.getElementById('cartBtn').disabled = count === 0;
-  renderPromoBar(total);
-
-  document.getElementById('cartLines').innerHTML = items.map(function(it){
-    const isDiy = !!it.diySel;
-    const label = isDiy
-      ? (it.hotPick ? '' : '🧪 DIY · ') + it.name.replace(' Full Loaf', '').replace(/^DIY: /, '') + ' (Full)'
-      : it.name;
-    const sub = isDiy
-      ? it.lines.map(function(l){ return l.label + ' ' + l.g + 'g'; }).concat(['หั่น' + it.sliceName.split(' ')[0]]).join(' · ')
-      : (it.dough ? 'โดว์ ' + it.dough + 'g' : '');
-    const minus = isDiy ? 'diyQty(' + it.diyIndex + ',-1)' : "dec('" + it.code + "')";
-    const plus = isDiy ? 'diyQty(' + it.diyIndex + ',1)' : "inc('" + it.code + "')";
-    return '<div class="line"><div style="min-width:0;">' +
-      '<div class="font-bold" style="font-size:15px;">' + esc(label) + '</div>' +
-      (sub ? '<div class="text-xs muted font-bold">' + esc(sub) + '</div>' : '') +
-      '<div class="text-sm font-bold" style="color:#6b4226;">' + money(it.price) + '</div></div>' +
-      '<div class="qty"><button class="qtybtn" aria-label="ลด" onclick="' + minus + '">−</button>' +
-      '<span class="num" style="min-width:20px;text-align:center;">' + it.qty + '</span>' +
-      '<button class="qtybtn" aria-label="เพิ่ม" onclick="' + plus + '">+</button></div></div>';
-  }).join('') || '<div class="muted font-bold text-center py-6">ยังไม่มีสินค้าในตะกร้า</div>';
-}
-
-function diyQty(i, delta){
-  diyCart[i].qty += delta;
-  if (diyCart[i].qty <= 0) diyCart.splice(i, 1);
-  renderCart();
-  if (!cartArray().length) closeCart();
-}
-
-function openCart(){
-  renderCart();
-  document.getElementById('sheetBg').classList.add('show');
-  document.getElementById('cartSheet').classList.add('show');
-}
-function closeCart(){
-  document.getElementById('sheetBg').classList.remove('show');
-  document.getElementById('cartSheet').classList.remove('show');
-}
-
-function renderPromoBar(total){
-  const bar = document.getElementById('promoBar');
-  const text = document.getElementById('promoBarText');
-  const fill = document.getElementById('promoBarFill');
-  if (total <= 0) { bar.style.display = 'none'; return; }
-  bar.style.display = 'block';
-  if (total >= PROMO_THRESHOLD) {
-    bar.classList.add('done');
-    text.textContent = '🎉 ได้รับถุงเก็บความเย็นฟรี 1 ใบ!';
-    fill.style.width = '100%';
-  } else {
-    bar.classList.remove('done');
-    text.textContent = '🧊 อีก ' + money(PROMO_THRESHOLD - total) + ' รับฟรีถุงเก็บความเย็น!';
-    fill.style.width = Math.min(100, total / PROMO_THRESHOLD * 100) + '%';
-  }
-}
-
-/* ===== สมาชิก ===== */
-async function prefillMemberInfo(){
-  if (!LINE_USER_ID) return;
-  if (LINE_NAME) document.getElementById('custLine').value = LINE_NAME;
-  try {
-    const res = await apiGet({ api: 'getMemberByLineId', lineUserId: LINE_USER_ID });
-    if (res && res.ok && res.registered && res.member) {
-      document.getElementById('custName').value = res.member.customerName || '';
-      document.getElementById('custPhone').value = res.member.phone || '';
-      if (res.member.lastPickupLocation) document.getElementById('pickLocation').value = res.member.lastPickupLocation;
-      document.getElementById('memberBarText').textContent = 'เชื่อมสมาชิก: ' + (res.member.customerName || '') + ' (' + (res.member.customerId || '') + ')';
-      document.getElementById('memberBar').style.display = 'flex';
-    } else if (res && res.ok && res.registered === false) {
-      document.getElementById('signupName').textContent = LINE_NAME || 'ลูกค้า';
-      document.getElementById('signupModal').classList.add('show');
-    }
-  } catch (err) {
-    console.error('prefillMemberInfo error:', err);
-  }
-}
-
-function skipSignup(){ document.getElementById('signupModal').classList.remove('show'); }
-
-async function submitSignup(ev){
-  const phone = document.getElementById('signupPhone').value.trim();
-  if (!phone) { alert('กรุณากรอกเบอร์โทร'); return; }
-  const btn = ev.target; const originalText = btn.textContent;
-  btn.disabled = true; btn.innerHTML = '<span class="spin"></span>';
-  try {
-    const res = await apiGet({ api: 'registerMember', lineUserId: LINE_USER_ID, customerName: LINE_NAME || 'ลูกค้า 648',
-                               phone: phone, lineName: LINE_NAME, consentMarketing: 'true' });
-    btn.disabled = false; btn.textContent = originalText;
-    if (!res || !res.ok) { alert((res && res.error) || 'สมัครไม่สำเร็จ กรุณาลองใหม่'); return; }
-    const member = res.member || {};
-    document.getElementById('custName').value = member.customerName || LINE_NAME || '';
-    document.getElementById('custPhone').value = member.phone || phone;
-    document.getElementById('signupModal').classList.remove('show');
-    document.getElementById('memberBarText').textContent = '🎉 สมัครสมาชิกสำเร็จ! ยินดีต้อนรับคุณ ' + (member.customerName || '');
-    document.getElementById('memberBar').style.display = 'flex';
-  } catch (err) {
-    btn.disabled = false; btn.textContent = originalText;
-    alert(err && err.name === 'AbortError' ? 'เซิร์ฟเวอร์ตอบช้ากว่าปกติ กรุณาลองใหม่' : 'เกิดข้อผิดพลาด: ' + (err && err.message ? err.message : err));
-  }
-}
-
-/* ===== ส่งออเดอร์ ===== */
-function chosenBakeDate(){
-  const c = document.getElementById('pickDateCustom');
-  return (ADMIN_MODE && c && c.value) ? c.value : document.getElementById('pickDate').value;
-}
-function markField(id, bad){ document.getElementById(id).classList.toggle('err', !!bad); }
-
-function submitOrder(){
-  const items = cartArray();
-  const name = document.getElementById('custName').value.trim();
-  const phone = document.getElementById('custPhone').value.trim();
-  const pickLocation = document.getElementById('pickLocation').value.trim();
-  const pickDate = chosenBakeDate();
-
-  markField('custName', !name); markField('custPhone', !phone); markField('pickLocation', !pickLocation);
-  if (!items.length) { toast('กรุณาเลือกสินค้าอย่างน้อย 1 รายการ'); return; }
-  if (!name || !phone || !pickLocation) {
-    toast('กรุณากรอกช่องสีแดงให้ครบ');
-    document.getElementById(!name ? 'custName' : !phone ? 'custPhone' : 'pickLocation').focus();
-    return;
-  }
-  if (!pickDate) { toast('กรุณาเลือกวันรับ'); return; }
-
-  const totalAmount = items.reduce(function(s, it){ return s + it.lineTotal; }, 0);
-  if (totalAmount < PROMO_THRESHOLD && !ADMIN_MODE) {
-    document.getElementById('promoCurrentTotal').textContent = money(totalAmount);
-    document.getElementById('promoNeedMore').textContent = money(PROMO_THRESHOLD - totalAmount);
-    document.getElementById('promoModal').classList.add('show');
-    return;
-  }
-  doSubmitOrder();
-}
-
-function closePromo(){ document.getElementById('promoModal').classList.remove('show'); closeCart(); }
-function proceedWithoutPromo(){ document.getElementById('promoModal').classList.remove('show'); doSubmitOrder(); }
-
-async function doSubmitOrder(){
-  const items = cartArray();
-  const totalAmount = items.reduce(function(s, it){ return s + it.lineTotal; }, 0);
-  const order = {
-    customerName: document.getElementById('custName').value.trim(),
-    phone: document.getElementById('custPhone').value.trim(),
-    lineName: document.getElementById('custLine').value.trim(),
-    lineUserId: ADMIN_MODE ? '' : LINE_USER_ID,
-    orderSource: ADMIN_MODE ? 'admin' : 'customer',
-    bakeDate: chosenBakeDate(),
-    pickupLocation: document.getElementById('pickLocation').value.trim(),
-    paymentStatus: 'Pending',
-    orderStatus: 'New',
-    totalAmount: totalAmount,
-    items: items.map(function(it){
-      const row = { productCode: it.code, productName: it.name, qty: it.qty, unitPrice: it.price,
-                    lineTotal: it.lineTotal, doughWeight: it.dough };
-      if (it.diySel) row.diy = { sel: it.diySel };
-      else if (it.hot) row.diy = { sel: it.hot.sel, half: it.hot.half };
-      return row;
-    })
-  };
-
-  const btn = document.getElementById('sendBtn');
-  btn.disabled = true; btn.innerHTML = '<span class="spin"></span>';
-  try {
-    const res = await apiPost({ api: 'saveOrder', order: order });
-    btn.disabled = false; btn.textContent = 'ส่งออเดอร์';
-    if (!res || !res.ok) { alert((res && res.error) || 'ส่งออเดอร์ไม่สำเร็จ กรุณาลองใหม่'); return; }
-    showSummary(res, order, items, totalAmount, totalAmount >= PROMO_THRESHOLD);
-  } catch (err) {
-    btn.disabled = false; btn.textContent = 'ส่งออเดอร์';
-    alert(err && err.name === 'AbortError'
-      ? 'เซิร์ฟเวอร์ตอบช้ากว่าปกติ ออเดอร์อาจถูกบันทึกแล้ว\nกรุณาทักแชทร้านเพื่อตรวจสอบก่อนกดส่งอีกครั้ง'
-      : 'เกิดข้อผิดพลาด: ' + (err && err.message ? err.message : err));
-  }
-}
-
-function showSummary(res, order, items, total, gotPromo){
-  const sel = document.getElementById('pickDate');
-  document.getElementById('sumOrderId').textContent = res.orderId || '-';
-  document.getElementById('sumName').textContent = order.customerName;
-  document.getElementById('sumPhone').textContent = order.phone;
-  const custom = document.getElementById('pickDateCustom');
-  document.getElementById('sumDate').textContent = (ADMIN_MODE && custom.value) ? order.bakeDate
-    : (sel.options[sel.selectedIndex] ? sel.options[sel.selectedIndex].text : order.bakeDate);
-  document.getElementById('sumLocation').textContent = order.pickupLocation || '-';
-  document.getElementById('sumItems').innerHTML = items.map(function(it){
-    const nm = it.diySel ? (it.hotPick ? '' : 'DIY · ') + it.name.replace(/^DIY: /, '') + (it.diySel.slice !== 'std' ? ' · หั่น' + it.sliceName.split(' ')[0] : '') : it.name;
-    return '<div class="flex justify-between gap-2"><span>' + esc(nm) + ' × ' + it.qty + '</span><span class="font-bold">' + money(it.lineTotal) + '</span></div>';
-  }).join('');
-  document.getElementById('sumTotal').textContent = money(total);
-  document.getElementById('sumPromoNote').style.display = gotPromo ? 'block' : 'none';
-  closeCart();
-  document.getElementById('summaryModal').classList.add('show');
-
-  cart = {}; diyCart = [];
-  document.getElementById('pickLocation').value = '';
-  if (ADMIN_MODE) {
-    ['custName','custPhone','custLine','pickDateCustom'].forEach(function(id){ document.getElementById(id).value = ''; });
-    try { window.parent.postMessage({ type: '648-order-saved', orderId: res.orderId || '', total: total }, '*'); } catch (e) {}
-  }
-  renderMenu(); renderCart();
-}
-
-function closeSummary(){ document.getElementById('summaryModal').classList.remove('show'); }
-
-async function saveSummaryImage(){
-  const el = document.getElementById('summaryCard');
-  const canvas = await html2canvas(el, { scale: 2, backgroundColor: '#fff' });
+function render(){ document.getElementById('preview').innerHTML = dropSlipHtml_(data()); }
+async function savePng(){
+  try{ await document.fonts.ready; }catch(e){}
+  const c = await html2canvas(document.getElementById('dropSlip'), { scale: 6, backgroundColor: '#fff' });
   const a = document.createElement('a');
-  a.download = '648_order_summary.png';
-  a.href = canvas.toDataURL('image/png');
-  a.click();
+  a.download = '648_sticker_80x50_' + ($('orderId').value.trim() || $('name').value.trim() || 'order') + '.png';
+  a.href = c.toDataURL('image/png'); a.click();
 }
+function clearForm(){ ['name','total','orderId','loc'].forEach(function(id){ document.getElementById(id).value = ''; }); render(); $('name').focus(); }
 
-/* ===== เริ่มต้น ===== */
-function initAdminMode(){
-  document.body.classList.add('admin-mode');
-  document.getElementById('liffLoading').classList.add('hide');
-  document.querySelector('.header div div:last-child').textContent = 'คีย์ออเดอร์ (โหมดร้าน)';
-  document.getElementById('customDateWrap').style.display = 'block';
-  document.getElementById('closeSummaryBtn').textContent = 'สั่งใบต่อไป';
-  document.getElementById('sendBtn').textContent = 'บันทึกออเดอร์';
-  const bar = document.createElement('div');
-  bar.className = 'adminbar';
-  bar.textContent = '🧑‍🍳 โหมดร้าน · คีย์แทนลูกค้า · ออเดอร์จะไม่ผูก LINE ของลูกค้า (อัปเดตสถานะชำระเงินได้ในหน้า Admin)';
-  document.querySelector('.wrap').insertBefore(bar, document.querySelector('.wrap').firstChild);
-  renderRounds(); renderMenu(); renderCart(); loadDiyConfig();
-}
-
-async function initLiff(){
-  if (ADMIN_MODE) { initAdminMode(); return; }
-  try {
-    await liff.init({ liffId: LIFF_ID });
-    if (liff.isLoggedIn()) {
-      const profile = await liff.getProfile();
-      LINE_USER_ID = profile.userId || '';
-      LINE_NAME = profile.displayName || '';
-    } else {
-      liff.login();
-      return;
-    }
-  } catch (err) {
-    console.error('LIFF init error:', err);
-  } finally {
-    document.getElementById('liffLoading').classList.add('hide');
-    renderRounds();
-    renderMenu();
-    renderCart();
-    prefillMemberInfo();
-    loadDiyConfig();
-  }
-}
-
-initLiff();
+// เติมค่าจากลิงก์ได้: sticker.html?name=...&total=...&loc=...&date=yyyy-mm-dd&order=...
+(function init(){
+  const q = new URLSearchParams(location.search);
+  $('name').value = q.get('name') || ''; $('total').value = q.get('total') || ''; $('loc').value = q.get('loc') || '';
+  $('orderId').value = q.get('order') || ''; $('mfg').value = q.get('date') || ymd(new Date());
+  F.forEach(function(id){ document.getElementById(id).addEventListener('input', render); });
+  render();
+})();
 </script>
 </body>
 </html>
